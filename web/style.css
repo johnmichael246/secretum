@@ -1,0 +1,183 @@
+/*
+	Copyright 2016-2017 Danylo Vashchilenko
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+	    http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
+
+/* Reset */
+div, table, form {
+	margin: 0px;
+	padding: 0px;
+}
+
+body {
+	font-family: sans-serif;
+}
+
+.app {
+	max-width: 960px;
+	margin: auto;
+	border: 1px solid grey;
+	box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+	box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+	padding: 1em;
+}
+
+.app > .header {
+	background-color: #494949;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 63px;
+	color: white;
+	text-align: center;
+	text-transform: uppercase;
+	font-family: Orbitron, sans-serif;
+	font-size: 3em;
+	text-shadow: 0px 0px 10px rgba(255,255,255,0.5);
+	box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+}
+
+.app > .page {
+	margin-top: 63px;
+}
+
+.search {
+	border: 1px solid grey;
+	font-size: 2em;
+	width: 100%;
+}
+
+.table {
+	width: 100%;
+}
+
+.table .row {
+	display: flex;
+}
+
+.table .cell {
+	overflow: hidden;
+	white-space: nowrap;
+	width: 1px;
+	flex-grow: 1;
+}
+
+.table .row:not(.header) .cell {
+	border: 1px solid rgb(208, 208, 208);
+}
+
+.table .header .cell {
+	text-align: center;
+	background-color: #5f5f5f;
+	color: white;
+	cursor: default;
+}
+
+.table .row:not(.header) .cell {
+	cursor: pointer;
+}
+
+.table .row:not(.header):nth-child(2n+1) .cell {
+	background-color: rgb(236, 236, 236);
+}
+
+.table .row:not(.header):hover .cell {
+	background-color: darkgrey;
+}
+
+/* Common cell properties */
+.cell.actions {
+	text-align: center;
+}
+
+.cell.actions a,
+.cell.actions a:visited {
+	color: black;
+	margin: 0px 5px;
+}
+
+.secrets.table .cell.id { 
+	width: 3ch;
+	flex-grow: 0; 
+	text-align: center;
+}
+
+.secrets.table .cell.group-name { flex-grow: 1 }
+.secrets.table .cell.resource { flex-grow: 3}
+.secrets.table .cell.principal { flex-grow: 3 }
+.secrets.table .cell.note { flex-grow: 2; }
+.secrets.table .cell.actions { width: 80px; flex-grow: 0; }
+
+@media (max-width: 960px) {
+	.secrets .cell.note {
+		display: none;
+	}
+}
+
+@media (max-width: 768px) {
+	.secrets .cell.group-name {
+		display: none;
+	}
+}
+
+@media (max-width: 480px) {
+	.secrets .cell.actions {
+		display: none;
+	}
+}
+
+.data-form {
+	display: flex;
+	flex-direction: column;
+	max-width: 400px;
+}
+
+.data-form .row {
+	display: flex;
+	margin: 5px;
+}
+
+.data-form .label::before {
+	content: "";
+	display: inline-block;
+	vertical-align: middle;
+	height: 100%;
+}
+
+.data-form .label {
+	width: 20%;
+	height: 2em;
+	padding-top: 0.15em;
+	text-align: right;
+	margin-right: 0.5em;
+	vertical-align: middle;
+	display: inline-block;
+}
+
+.data-form input,
+.data-form textarea,
+.data-form select {
+	flex-grow: 3;
+	font-size: 1rem;
+	padding-left: 0.5em;
+}
+
+#root {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+}
