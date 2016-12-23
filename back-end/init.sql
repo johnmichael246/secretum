@@ -13,9 +13,8 @@
 -- limitations under the License.
 
 -- Current dump of database schema
--- TODO: Update column names and types
 
-CREATE SEQUENCE secret_id_seq
+CREATE SEQUENCE group_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -26,19 +25,20 @@ CREATE SEQUENCE secret_id_seq
     id integer DEFAULT nextval('secret_id_seq'::regclass) NOT NULL,
     resource text NOT NULL,
     principal text NOT NULL,
-    secret text NOT NULL,
-    notes text,
-    section integer
+    password text NOT NULL,
+    note text NOT NULL,
+    deleted boolean NOT NULL DEFAULT FALSE,
+    group_id integer NOT NULL REFERENCES groups (id)
 );
 
- CREATE SEQUENCE section_id_seq
+ CREATE SEQUENCE group_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
 
- CREATE TABLE sections (
-    id integer DEFAULT nextval('section_id_seq'::regclass) NOT NULL,
+ CREATE TABLE groups (
+    id integer DEFAULT nextval('group_id_seq'::regclass) NOT NULL,
     name text NOT NULL
 );

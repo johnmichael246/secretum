@@ -246,7 +246,7 @@ class SecretForm extends React.Component {
 		const groups = App.model.findAllGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const fields = [
 			{name: "id", type: "text", label: "ID", readOnly: true},
-			{name: "group-id", type: "select", label: "Group", options: groups},
+			{name: "groupId", type: "select", label: "Group", options: groups},
 			{name: "resource", type: "text", label: "Resource"},
 			{name: "principal", type: "text", label: "Principal"},
 			{name: "password", type: "text", label: "Password"},
@@ -331,7 +331,7 @@ function SecretsTable(props) {
 
 	return ep(DataTable, 
 		{className: "secrets", headers:["ID","Group", "Resource","Principal","Note","Actions"], 
-			columns:["id", "group-name", "resource", "principal", "note", "actions"],
+			columns:["id", "groupName", "resource", "principal", "note", "actions"],
 			data: data});
 }
 
@@ -369,41 +369,29 @@ class Model {
 	}
 
 	findAll() {
-		return this._get("?action=secrets_search").then(d => {
-			return d.results.map(g => {
-				return g.note === null ? Object.assign(g, {note:""}) : g;
-			});
-		});
+		return this._get("/secrets");
 	}
 
 	findAllGroups() {
-		return this._get("?action=sections_list").then(d => d.results);
+		return this._get("/groups");
 	}
 
 	findKeyword(query) {
-		return this._get("?action=secrets_search&query="+encodeURIComponent(query)).then(d => d.results);	
+		return this._get("/secrets?keyword="+encodeURIComponent(query)).then(d => d.results);	
 	}
 
 	saveSecret(secret) {
-		const data = new FormData()
-		data.append("section", secret["group-id"]);
-		data.append("secret", secret.password);
-		data.append("resource", secret.resource);
-		data.append("principal", secret.principal);
-		data.append("notes", secret.note);
+		const data = JSON.stringify(secret);
 
 		if(secret.id === null) {
-			this._post("?action=secrets_create", data);
+			this._post("/secrets", data);
 		} else {
-			data.append("id", secret.id);
-			this._post("?action=secrets_update", data);
+			this._post(`/secrets/${secret.id}`, data);
 		}
 	}
 
 	removeSecret(id) {
-		const data = new FormData();
-		data.append("id", id);
-		this._post("?action=secrets_delete", data);
+		this._post(`/secrets/${id}/delete`);
 	}
 
 	get(id) {
@@ -593,7 +581,7 @@ class App extends React.Component {
 		return App._model;
 	}
 }
-App._model = new Model("https://aurora42.net/secretum-dev.php");
+App._model = new Model("http://localhost:8001");
 
 document.addEventListener("DOMContentLoaded", function(evt) {
 	ReactDOM.render(ep(App, {model: App.model}), document.getElementById("root"));
