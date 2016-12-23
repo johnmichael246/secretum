@@ -32,6 +32,7 @@ function exists(path) {
 }
 
 function cpIfNeeded(src, dst) {
+	if(!exists(src)) throw new Error(`Source (${src}) does not exists!`);
 	if(exists(dst)) return;
 	cp(src,dst);
 }
@@ -42,15 +43,20 @@ function mkdirIfNeeded(path) {
 }
 
 mkdirIfNeeded("output");
-mkdirIfNeeded("output/lib");
-cpIfNeeded('node_modules/react/dist/react.js','output/lib/react.js');
-cpIfNeeded('node_modules/react-dom/dist/react-dom.js','output/lib/react-dom.js');
-cp('static/app.html','output/app.html');
-cp('static/app.css','output/app.css');
+mkdirIfNeeded("output/webapp");
+cp('web/index.html','output/webapp/index.html');
+cp('web/favicon.png','output/webapp/favicon.png');
 
-var babel = require("babel-core");
+mkdirIfNeeded("output/webapp/js");
+cpIfNeeded('node_modules/react/dist/react.js','output/webapp/js/react.js');
+cpIfNeeded('node_modules/react-dom/dist/react-dom.js','output/webapp/js/react-dom.js');
+cp('web/app.js','output/webapp/js/app.js');
 
-console.log("Transforming scripts...");
-let s = fs.createWriteStream("output/app.js");
-s.write(babel.transformFileSync("js/app.jsx",{presets:["react"]}).code);
-s.end();
+mkdirIfNeeded("output/webapp/css");
+cp('web/style.css','output/webapp/css/style.css');
+cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'output/webapp/css/font-awesome.min.css');
+
+mkdirIfNeeded("output/webapp/fonts");
+cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'output/webapp/fonts/fontawesome-webfont.woff');
+cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.ttf', 'output/webapp/fonts/fontawesome-webfont.ttf');
+
