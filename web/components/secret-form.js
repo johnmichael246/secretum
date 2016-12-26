@@ -16,7 +16,7 @@
 
 import {ep} from '../ui.js';
 import {DataForm} from './data-form.js';
-import { Model } from '../model.js';
+import { getModel } from '../model.js';
 
 export class SecretForm extends React.Component {
 	constructor(props) {
@@ -24,7 +24,7 @@ export class SecretForm extends React.Component {
 	}
 
 	render() {
-		const groups = Model.get().findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
+		const groups = getModel().findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const readOnly = this.props.readOnly || false;
 
 		const fields = [

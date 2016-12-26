@@ -26,13 +26,17 @@ export class DataTable extends React.Component {
 
 	_setup(props) {
 		if(props.data instanceof Promise) {
-			props.data.then(d => this.setState({data: d, loading: false}));
+			props.data.then(d => this.setState({
+				loading: false,
+				data: d,
+				detailed: Array(d.length).fill(false)
+		}));
 			return { loading: true };
 		} else {
 			return {
 				loading: false,
 				data: props.data,
-				selected: undefined
+				detailed: Array(props.data.length).fill(false)
 			};
 		}
 	}
@@ -47,11 +51,9 @@ export class DataTable extends React.Component {
 	}
 
 	_onRowClick(idx) {
-		this.setState({selected: idx});
-	}
-
-	_onCurrentRendered(elem) {
-		if(elem !== null) elem.scrollIntoView({behavior: 'smooth', block: 'end'});
+		var detailed = Array.from(this.state.detailed);
+		detailed[idx] = !detailed[idx];
+		this.setState({detailed: detailed});
 	}
 
 	render() {
@@ -64,9 +66,8 @@ export class DataTable extends React.Component {
 		const buildRow = (row,idx) => {
 			const props = {key: idx, className: "row", onClick: () => this._onRowClick(idx)};
 			// Additional class name for currently selected row
-			if(idx === this.state.selected) {
+			if(this.state.detailed[idx]) {
 				props.className += ' selected';
-				props.ref = this._onCurrentRendered;
 			}
 
 			return epc("div", props, this.props.columns.map((col) => buildCell(col,row[col])));
@@ -74,10 +75,15 @@ export class DataTable extends React.Component {
 
 		if(!this.state.loading) {
 			const rows = this.state.data.map(buildRow);
-			if(this.state.selected !== undefined && this.props.detailsFactory !== undefined) {
-				// Inserts the details component after the currently selected row
-				const details = this.props.detailsFactory(this.state.data[this.state.selected]);
-				rows.splice(this.state.selected+1, 0, epc("div", {key: `details-${this.state.selected}`}, details));
+			if(this.props.detailsFactory !== undefined) {
+				var inserted = 0;
+				this.state.detailed.forEach((flag,idx) => {
+					if(!flag) return;
+					// Inserts the details component after the currently selected rows
+					const details = this.props.detailsFactory(this.state.data[idx]);
+					rows.splice(idx+inserted+1, 0, epc("div", {key: `details-${idx}`}, details));
+					inserted = inserted+1;
+				});
 			}
 			children.push.apply(children, rows);
 		} else {

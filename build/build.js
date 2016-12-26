@@ -51,7 +51,10 @@ exports.build = function() {
 	mkdirIfNeeded("output");
 	mkdirIfNeeded("output/webapp");
 	cp('web/index.html','output/webapp/index.html');
-	cp('web/favicon.png','output/webapp/favicon.png');
+	cp('web/app.cache','output/webapp/app.cache');
+	cpIfNeeded('web/favicon.png','output/webapp/favicon.png');
+	cpIfNeeded('web/icon-120x120.png','output/webapp/icon-120x120.png');
+	cpIfNeeded('web/manifest.json','output/webapp/manifest.json');
 
 	mkdirIfNeeded("output/webapp/js");
 	cpIfNeeded('node_modules/react/dist/react.js','output/webapp/js/react.js');
@@ -80,7 +83,7 @@ exports.build = function() {
 	  // Generate bundle + sourcemap
 	  var result = bundle.generate({
 	    // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
-	    format: 'iife'
+	    format: 'es'
 	  });
 
 	  // Cache our bundle for later use (optional)
@@ -96,7 +99,7 @@ exports.runDev = function() {
 		verbose: true,
 		watch: ['./back-end','./web'],
 	  script: './back-end/service.js',
-	  ext: 'js json css',
+	  ext: 'js json css cache html',
 		env: {NODE_ENV: 'development'}
   });
 
@@ -111,8 +114,23 @@ exports.runDev = function() {
 	});
 }
 
+function deleteFolderRecursive(path) {
+  if(fs.existsSync(path)) {
+    fs.readdirSync(path).forEach(function(file,index){
+      var curPath = path + "/" + file;
+      if(fs.lstatSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+
 // Runnable as a stand-alone script
 if(require.main === module) {
-	exports.build();
+	console.log('Removing output folder, if any...');
+	deleteFolderRecursive('output');
 	exports.runDev();
 }

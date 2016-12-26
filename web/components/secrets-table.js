@@ -40,7 +40,7 @@ export function SecretsTable(props) {
   const detailsFactory = (secret) => {
     const topActions = [
       {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret), icon: 'edit'},
-      {label: 'Copy', handler: () => copyTextToClipboard(secret.password), icon: 'flash'},
+      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret), icon: 'flash'},
       {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret), icon: 'remove'}
     ];
     return ep(SecretForm, {

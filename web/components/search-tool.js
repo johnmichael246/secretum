@@ -32,7 +32,9 @@ export class SearchTool extends React.Component {
 	}
 
 	_onChange(event) {
-		const update = {[event.target.name]: event.target.value};
+		var newValue = event.target.value;
+		if(event.target.name === 'group') newValue = parseInt(newValue);
+		const update = {[event.target.name]: newValue};
 		this.setState(update);
 
 		const query = Object.assign({group: this.state.group, keyword: this.state.keyword}, update);

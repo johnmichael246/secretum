@@ -18,7 +18,7 @@ import { HomePage } from './pages/home.js';
 import { EditSecretPage } from './pages/edit-secret.js';
 import { ep, epc } from './ui.js';
 import { Router } from './router.js';
-import { Model } from './model.js';
+import { createModel } from './model.js';
 
 Map.fromObject = function(obj) {
 	const map = new Map();
@@ -31,12 +31,23 @@ Map.fromObject = function(obj) {
 class App extends React.Component {
 	constructor(props) {
 		super(props);
+		this.state = {loading: true};
+		createModel('/api').then((m) => {
+			this.setState({loading: false, model: m});
+		});
 	}
 
 	render() {
+		if(this.state.loading) {
+			return epc('div', {className: 'loading'}, 'Application is loading...');
+		}
+
 		var rules = [
-			["/", ep(HomePage,{model: this.props.model})],
-			["/secrets/{id}", id => ep(EditSecretPage, {model: this.props.model, secret:this.props.model.get(Number.parseInt(id))})]
+			["/", ep(HomePage, {model: this.state.model})],
+			["/secrets/{id}", id => ep(EditSecretPage, {
+				model: this.state.model,
+				secret: this.state.model.get(Number.parseInt(id))
+			})]
 		];
 		return epc("div", {className: "app"}, [
 			epc("div", {key: "header", className: "header"}, "Secretum"),
@@ -44,12 +55,7 @@ class App extends React.Component {
 			epc("div", {key: "footer", className: "footer"}, "Keep your secrets safe!")
 		]);
 	}
-
-	static get model() {
-		return App._model;
-	}
 }
-App._model = new Model("/api");
 
 document.addEventListener("DOMContentLoaded", function() {
 	ReactDOM.render(ep(App, {model: App.model}), document.getElementById("root"));

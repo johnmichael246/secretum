@@ -21,7 +21,7 @@ import { SecretsTable } from '../components/secrets-table.js';
 export class HomePage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {secrets: props.model.findAll()};
+    this.state = {secrets: props.model.findSecrets()};
 
     this._onSearch = this._onSearch.bind(this);
     this._onCopy = this._onCopy.bind(this);
@@ -43,6 +43,18 @@ export class HomePage extends React.Component {
 
   _onRemove(secret) {
     window.location.hash = `#/secrets/${secret.id}/remove`;
+  }
+
+  componentDidMount() {
+    document.body.addEventListener('keydown', event => {
+      if(event.altKey && event.key === 'q') {
+        document.querySelector('.search select').focus();
+      } else if(event.altKey && event.key === 'w') {
+        const input = document.querySelector('.search input');
+        input.focus();
+        input.select();
+      }
+    });
   }
 
   render() {
