@@ -81,7 +81,7 @@ export class DataTable extends React.Component {
 					if(!flag) return;
 					// Inserts the details component after the currently selected rows
 					const details = this.props.detailsFactory(this.state.data[idx]);
-					rows.splice(idx+inserted+1, 0, epc("div", {key: `details-${idx}`}, details));
+					rows.splice(idx+inserted+1, 0, epc("div", {key: `details-${idx}`, className: 'details-wrapper'}, details));
 					inserted = inserted+1;
 				});
 			}

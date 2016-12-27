@@ -17,21 +17,26 @@
 /* Disable overscroll */
 
 /* Reset */
-div, table, form {
+body, div, table, form {
 	margin: 0px;
 	padding: 0px;
 }
 
 body {
 	font-family: sans-serif;
+	user-select: none;
+	background-color: #bfbfbf;
+	height: 100vh;
+}
+
+#root {
+	height: 100%;
 }
 
 .app {
-	max-width: 960px;
-	margin: auto;
-	border: 1px solid grey;
-	box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-	box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 .app > .header {
@@ -47,14 +52,47 @@ body {
 	padding-top: 0.2em;
 }
 
-.search {
-	border: 1px solid grey;
-	font-size: 2em;
-	width: 100%;
+.app > .page {
+	display: flex;
+	flex-grow: 1;
+	flex-direction: column;
 }
 
+.home {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+.search {
+	font-size: 2em;
+	flex-shrink: 0;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.search input[name=keyword] {
+	min-width: 75%;
+	flex-grow: 3;
+	margin: 5px 5px;
+	padding: 3px 3px;
+	font-size: 0.5em;
+	color: #5f5f5f;
+}
+
+.search select {
+	min-width: 20%;
+	flex-grow: 1;
+	font-size: 0.5em;
+	padding: 3px 0px;
+	margin: 5px 5px;
+	color: #5f5f5f;
+}
+
+
 .table {
-	width: 100%;
+	flex-grow: 1;
+	overflow-y: scroll;
 }
 
 .table > .row,
@@ -178,32 +216,10 @@ body {
 	background-color: lightgrey;
 }
 
-.data-form.secret-details {
-	/*font-size: 0.6em;*/
+.table .details-wrapper {
+	box-shadow: inset 0px 0px 40px grey;
 }
 
-.search {
-	display: flex;
-	flex-wrap: wrap;
-}
-
-.search input[name=keyword] {
-	min-width: 75%;
-	flex-grow: 3;
-	margin: 5px 5px;
-	padding: 3px 3px;
-	font-size: 0.5em;
-	color: #5f5f5f;
-}
-
-.search select {
-	min-width: 20%;
-	flex-grow: 1;
-	font-size: 0.5em;
-	padding: 3px 0px;
-	margin: 5px 5px;
-	color: #5f5f5f;
-}
 
 .actions-box {
 	display: flex;
@@ -244,10 +260,8 @@ body {
 .action .action-icon {
 	float: left;
 	margin-left: 0.3em;
-	display: inline-block;
 }
 
 .action .action-label {
-	display: inline-block;
 	margin-left: 0.3em;
 }

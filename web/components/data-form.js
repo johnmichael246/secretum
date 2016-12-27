@@ -130,7 +130,14 @@ export class DataForm extends React.Component {
 			const icon = ep('div', {key: 'icon', className: `action-icon fa fa-${action.icon}`});
 			const label = epc('div', {key: 'label', className: 'action-label'}, action.label);
 
-			return epc('div', {key: action.label, className: 'action', onClick: action.handler}, [icon, label]);
+			return epc('div', {
+				key: action.label,
+				className: 'action',
+				onClick: (evt) => {
+					evt.preventDefault();
+					action.handler();
+				}},
+				[icon, label]);
 		};
 
 		if(this.props.topActions !== undefined) {
