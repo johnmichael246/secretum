@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/* global React */
+
 import { ep, epc, ec } from '../ui.js';
 import { DataTable } from './data-table.js';
 import { SecretForm } from './secret-form.js';
@@ -29,7 +31,7 @@ function merge(a1, a2) {
   return a1.map((a,i) => Object.assign(a,a2[i]));
 }
 
-export function SecretsTable(props) {
+export function SecretsTable(props, context) {
   const transform = secrets => {
     const actions = secrets.map(s => ({
       actions: ep(SecretToolbox, {secret: s, actionHandlers: props.actionHandlers})
@@ -39,13 +41,13 @@ export function SecretsTable(props) {
 
   const detailsFactory = (secret) => {
     const topActions = [
-      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret), icon: 'edit'},
-      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret), icon: 'flash'},
-      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret), icon: 'remove'}
+      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret.id), icon: 'edit'},
+      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret.id), icon: 'flash'},
+      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret.id), icon: 'remove'}
     ];
     return ep(SecretForm, {
       className: "secret-details",
-      secret: secret,
+      secretId: secret.id,
       readOnly: true,
       topActions: topActions
     });
@@ -58,6 +60,11 @@ export function SecretsTable(props) {
     data = transform(props.secrets);
   }
 
+  data = Promise.resolve(data).then(secrets => {
+    return Promise.all(secrets.map(secret => context.store.getGroup(secret.groupId)))
+      .then(groups => secrets.map((s,i) => Object.assign(s,{groupName: groups[i].name})));
+  });
+
   return ep(DataTable, {
     className: "secrets",
     headers: ["ID","Group", "Resource","Principal","Note","Actions"],
@@ -66,3 +73,7 @@ export function SecretsTable(props) {
     detailsFactory: detailsFactory
   });
 }
+
+SecretsTable.contextTypes = {
+  store: React.PropTypes.object
+};

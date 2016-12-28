@@ -17,13 +17,11 @@ const winston = require('winston');
 
 module.exports = (config) => {
   return [
-    {method: "GET", 	path: "/", handler: action(serviceStatus, {model: config.model})},
-    {method: "GET", 	path: "/secrets", handler: action(findSecrets, {model: config.model})},
-    {method: "POST",  path: "/secrets", handler: action(createSecret, {model: config.model})},
-    {method: "GET", 	path: "/secrets/{id}", handler: action(findSecretById, {model: config.model})},
-    {method: "POST",  path: "/secrets/{id}", handler: action(updateSecret, {model: config.model})},
-    {method: "POST",  path: "/secrets/{id}/delete", handler: action(deleteSecret, {model: config.model})},
-    {method: "GET",   path: "/groups", handler: action(findGroups, {model: config.model})}
+    {method: "GET", 	path: "/vaults", handler: action(findVaults, {model: config.model})},
+    {method: "GET", 	path: "/vaults/{name}", handler: action(getVault, {model: config.model})},
+    //{method: "POST",  path: "/vaults", handler: action(createVault, {model: config.model})},
+    {method: "GET", 	path: "/snapshots/{id}", handler: action(getSnapshot, {model: config.model})},
+    //{method: "POST",  path: "/snapshots", handler: action(createSnapshot, {model: config.model})}
   ];
 };
 
@@ -49,11 +47,19 @@ function action(handler, config) {
   };
 }
 
-function serviceStatus() {
-	return ok({home: true});
+function findVaults(req) {
+	return req.model.findVaults().then(ok);
 }
 
-function findSecrets(req) {
+function getVault(req) {
+  return req.model.getVault(req.pathVars.name).then(okOrNotFound);
+}
+
+function getSnapshot(req) {
+  return req.model.getSnapshot(parseInt(req.pathVars.id)).then(okOrNotFound);
+}
+
+/*function findSecrets(req) {
   const keyword = (req.queryVars.keyword||'').trim();
   const group = parseInt(req.queryVars.group)||undefined;
 	return req.model.findSecretsByKeywordAndGroup(keyword, group).then(res => ok(res));
@@ -102,12 +108,24 @@ function findSecretById(req) {
 
 function findGroups(req) {
 	return req.model.findAllGroups().then(groups => ok(groups));
-}
+}*/
 
 // ----- Utility functions -----
 
 function ok(doc) {
   return {status: httpStatus.OK, doc: doc};
+}
+
+function notFound() {
+  return {status: httpStatus.NOT_FOUND};
+}
+
+function okOrNotFound(doc) {
+  if(doc === null) {
+    return notFound();
+  } else {
+    return ok(doc);
+  }
 }
 
 function readBody(req) {

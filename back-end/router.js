@@ -86,7 +86,8 @@ function pathTest(pattern, path) {
   }
 
   if(parsed.vars.length === 0) return {};
+  result.shift();
 
-  const bound = parsed.vars.map((k,i) => ({[k]: parsed.values[i]}));
+  const bound = parsed.vars.map((k,i) => ({[k]: result[i]}));
   return Object.assign.apply(null, bound);
 }

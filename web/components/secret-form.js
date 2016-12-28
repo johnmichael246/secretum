@@ -16,7 +16,6 @@
 
 import {ep} from '../ui.js';
 import {DataForm} from './data-form.js';
-import { getModel } from '../model.js';
 
 export class SecretForm extends React.Component {
 	constructor(props) {
@@ -24,8 +23,9 @@ export class SecretForm extends React.Component {
 	}
 
 	render() {
-		const groups = getModel().findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
+		const groups = this.context.store.findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const readOnly = this.props.readOnly || false;
+		const secret = this.context.store.getSecret(this.props.secretId);
 
 		const fields = [
 			{name: "id", type: "text", label: "ID", readOnly: true},
@@ -39,7 +39,7 @@ export class SecretForm extends React.Component {
 			className: this.props.className||'' + ' secret-form',
 			title: this.props.title,
 			fields: fields,
-			data: this.props.secret,
+			data: secret,
 			onSubmit: this.props.onSubmit,
 			onCancel: this.props.onCancel,
 			topActions: this.props.topActions
@@ -47,3 +47,7 @@ export class SecretForm extends React.Component {
 		return ep(DataForm, form);
 	}
 }
+
+SecretForm.contextTypes = {
+  store: React.PropTypes.object
+};

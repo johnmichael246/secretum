@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+import { ep, epc } from '../ui.js';
 
-import { ec } from '../ui.js';
+export function Button(props) {
+	const icon = ep('div', {key: 'icon', className: `action-icon fa fa-${props.icon}`});
+	const label = epc('div', {key: 'label', className: 'action-label'}, props.label);
 
-export class RemoveSecretPage extends React.Component {
-  constructor(props){
-    super(props);
-  }
-
-  render() {
-    return ec('div', 'Remove!!!');
-  }
+	return epc('div', {
+		key: props.label,
+		className: props.toggled ? 'button toggled' : 'button',
+		onClick: props.toggled ? undefined : props.handler},
+		[icon, label]);
 }

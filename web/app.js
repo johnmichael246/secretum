@@ -16,9 +16,15 @@
 
 import { HomePage } from './pages/home.js';
 import { EditSecretPage } from './pages/edit-secret.js';
-import { ep, epc } from './ui.js';
+import { RemoveSecretPage } from './pages/remove-secret.js';
+import { SyncPage} from './pages/sync.js';
+
+import { e, ep, epc } from './ui.js';
 import { Router } from './router.js';
-import { createModel } from './model.js';
+import { Store } from './store.js';
+import { Syncer } from './syncer.js';
+
+import { Button } from './components/button.js';
 
 Map.fromObject = function(obj) {
 	const map = new Map();
@@ -31,10 +37,26 @@ Map.fromObject = function(obj) {
 class App extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {loading: true};
-		createModel('/api').then((m) => {
-			this.setState({loading: false, model: m});
+		this.state = {loading: true, route: {page: 'home'}};
+
+		this._initDatabase().then(db => {
+			this.store = new Store(db);
+			this.syncer = new Syncer({endpoint: '/api', db: db});
+			this.setState({loading: false});
 		});
+	}
+
+	navigate(route) {
+		this.setState({route: route});
+	}
+
+	getChildContext() {
+		if(this.state.loading) {
+			return {};
+		} else {
+			// Must not be used before the loading is finished
+			return {app: this, store: this.store, syncer: this.syncer};
+		}
 	}
 
 	render() {
@@ -43,20 +65,59 @@ class App extends React.Component {
 		}
 
 		var rules = [
-			["/", ep(HomePage, {model: this.state.model})],
-			["/secrets/{id}", id => ep(EditSecretPage, {
-				model: this.state.model,
-				secret: this.state.model.get(Number.parseInt(id))
-			})]
+			{page: 'home', component: HomePage},
+			{page: 'sync', component: SyncPage},
+			{page: 'edit-secret', component: EditSecretPage},
+			{page: 'remove-secret', component: RemoveSecretPage}
 		];
+
+		const tabs = [ ep(Button, {
+				key: 'home', label: 'Home', icon: 'home', toggled: this.state.route.page==='home',
+				handler: ()=>this.setState({route: {page: 'home'}})}),
+			ep(Button, {
+				key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.route.page==='sync',
+				handler: ()=>this.setState({route: {page: 'sync'}})})
+		];
+
 		return epc("div", {className: "app"}, [
 			epc("div", {key: "header", className: "header"}, "Secretum"),
-			ep(Router, {key: "router", className: "page", rules: rules, id: "router-main"}),
-			epc("div", {key: "footer", className: "footer"}, "Keep your secrets safe!")
+			ep(Router, {key: "router", className: "page", rules: rules, route: this.state.route, id: "router-main"}),
+			epc("div", {key: "footer", className: "footer"}, tabs)
 		]);
+	}
+
+	_initDatabase() {
+		return new Promise((resolve, reject) => {
+			var db;
+			var openRequest = window.indexedDB.open('secretum', 1);
+			openRequest.onsuccess = () => {
+				db = openRequest.result;
+				db.onerror = console.error;
+
+				resolve(db);
+
+				console.log('IndexedDB is now open.');
+			};
+			openRequest.onerror = reject;
+			openRequest.onupgradeneeded = () => {
+				db = openRequest.result;
+
+				db.createObjectStore('secrets', {keyPath: 'id'});
+				db.createObjectStore('groups', {keyPath: 'id'});
+				db.createObjectStore('meta');
+
+				console.log('Database scheme upgraded or initialized!');
+			}
+		});
 	}
 }
 
+App.childContextTypes = {
+	app: React.PropTypes.object,
+	store: React.PropTypes.object,
+	syncer: React.PropTypes.object
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-	ReactDOM.render(ep(App, {model: App.model}), document.getElementById("root"));
+	ReactDOM.render(e(App), document.getElementById("root"));
 });

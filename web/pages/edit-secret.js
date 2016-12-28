@@ -20,26 +20,31 @@ import { ep } from '../ui.js';
 export class EditSecretPage extends React.Component {
   constructor(props) {
     super(props);
+
     this._onSave = this._onSave.bind(this);
     this._onCancel = this._onCancel.bind(this);
   }
 
   _onSave(secret) {
-    this.props.model.saveSecret(secret);
-    window.location.hash = "#/";
+    this.context.store.saveSecret(secret);
+    this.context.app.navigate({page: 'home'});
   }
 
   _onCancel() {
-    window.location.hash = "#/";
+    this.context.app.navigate({page: 'home'});
   }
 
   render() {
     return ep(SecretForm, {
-      model: this.props.model,
-      secret: this.props.secret,
+      secretId: this.props.route.secretId,
       onSubmit: this._onSave,
       onCancel: this._onCancel,
       title: 'Editing Secret'
     });
   }
+}
+
+EditSecretPage.contextTypes = {
+  app: React.PropTypes.object,
+  store: React.PropTypes.object
 }

@@ -19,9 +19,11 @@ import { SearchTool } from '../components/search-tool.js';
 import { SecretsTable } from '../components/secrets-table.js';
 
 export class HomePage extends React.Component {
-  constructor(props) {
+  constructor(props, context) {
     super(props);
-    this.state = {secrets: props.model.findSecrets()};
+    this.context = context;
+
+    this.state = {secrets: this.context.store.findSecrets()};
 
     this._onSearch = this._onSearch.bind(this);
     this._onCopy = this._onCopy.bind(this);
@@ -30,19 +32,19 @@ export class HomePage extends React.Component {
   }
 
   _onSearch(query) {
-    this.setState({query: query, secrets: this.props.model.findSecrets(query)});
+    this.setState({query: query, secrets: this.context.store.findSecrets(query)});
   }
 
   _onCopy(secret) {
     copyTextToClipboard(secret.password);
   }
 
-  _onEdit(secret) {
-    window.location.hash = `#/secrets/${secret.id}`;
+  _onEdit(secretId) {
+    this.context.app.navigate({page: 'edit-secret', secretId: secretId});
   }
 
   _onRemove(secret) {
-    window.location.hash = `#/secrets/${secret.id}/remove`;
+    this.context.app.navigate({page: 'remove-secret', secret: secret});
   }
 
   componentDidMount() {
@@ -60,11 +62,16 @@ export class HomePage extends React.Component {
   render() {
     const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
     return epc("div", {className: "home"}, [
-      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.props.model.findGroups()}),
+      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()}),
       ep(SecretsTable, {key: "table", secrets: this.state.secrets, actionHandlers: handlers})
     ]);
   }
 }
+
+HomePage.contextTypes = {
+  app: React.PropTypes.object,
+  store: React.PropTypes.object
+};
 
 function copyTextToClipboard(text) {
 	var textArea = document.createElement("textarea");

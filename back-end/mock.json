@@ -1,0 +1,16 @@
+{
+  "vaults": [
+    {"name": "test1", "currentSnapshotId": 1},
+    {"name": "test2", "currentSnapshotId": 3}
+  ],
+  "snapshots": [
+    {"id": 1, "when": "yesterday", "who": "device1", "parentSnapshotId": null, "blob": {
+      "groups": [{"id":1,"name":"Group A"},{"id":2,"name":"Group B"}],
+      "secrets": [{"id":1,"groupId":1,"resource":"http://a.com","principal": "userA", "password": "passA", "note": ""},
+                {"id":2,"groupId":1,"resource":"http://aa.com","principal": "userAA", "password": "passAA", "note": ""},
+                {"id":3,"groupId":2,"resource":"http://b.com","principal": "userB", "password": "passAB", "note": ""}]
+      }},
+    {"id": 2, "when": "yesterday", "who": "device2", "parentSnapshotId": null, "blob": "content2"},
+    {"id": 3, "when": "today", "who": "device1", "parentSnapshotId": 2, "blob": "content2++"}
+  ]
+}

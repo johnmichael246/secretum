@@ -30,13 +30,13 @@ const routes = require('./routes');
 
 winston.level = process.env.LOG_LEVEL || 'debug';
 
-const config = {
+/*const config = {
 	user: 'postgres',
 	database: 'secretum',
 	password: 'postgres',
 	host: 'localhost',
 	port: 5432
-};
+};*/
 
 class Service {
 	constructor() {
@@ -45,7 +45,7 @@ class Service {
 		this._handleRequest = this._handleRequest.bind(this);
 		this._handleUnmapped = this._handleUnmapped.bind(this);
 
-		this._model = new Model(config);
+		this._model = new Model();
 		this._router = router(routes({model: this._model}), this._handleUnmapped);
 	}
 

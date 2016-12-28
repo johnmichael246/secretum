@@ -15,6 +15,7 @@
 /*global React*/
 
 import {ep, epc} from '../ui.js';
+import { Button } from './button.js';
 
 export class DataForm extends React.Component {
 	constructor(props) {
@@ -126,24 +127,15 @@ export class DataForm extends React.Component {
 			children.push(epc("h2",{key: "title", className: "title"},this.props.title));
 		}
 
-		const buildAction = (action) => {
-			const icon = ep('div', {key: 'icon', className: `action-icon fa fa-${action.icon}`});
-			const label = epc('div', {key: 'label', className: 'action-label'}, action.label);
-
-			return epc('div', {
-				key: action.label,
-				className: 'action',
-				onClick: (evt) => {
-					evt.preventDefault();
-					action.handler();
-				}},
-				[icon, label]);
-		};
-
 		if(this.props.topActions !== undefined) {
 			const actionsBox = epc('div',
 				{key: 'top-actions', className: 'actions-box'},
-				this.props.topActions.map(buildAction)
+				this.props.topActions.map(a => ep(Button, {
+					key: a.label,
+					icon: a.icon,
+					label: a.label,
+					handler: a.handler
+				}))
 			);
 			const label = ep('div', {key: 'label', className: 'label'});
 			const row = epc('div', {key: 'actions', className: 'row'}, [label, actionsBox]);
