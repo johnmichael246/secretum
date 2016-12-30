@@ -41,9 +41,9 @@ export function SecretsTable(props, context) {
 
   const detailsFactory = (secret) => {
     const topActions = [
-      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret.id), icon: 'edit'},
-      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret.id), icon: 'flash'},
-      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret.id), icon: 'remove'}
+      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret), icon: 'edit'},
+      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret), icon: 'flash'},
+      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret), icon: 'remove'}
     ];
     return ep(SecretForm, {
       className: "secret-details",

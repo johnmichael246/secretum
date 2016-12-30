@@ -1,3 +1,4 @@
 *.sublime-project
 node_modules
 output
+.idea

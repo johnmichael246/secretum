@@ -14,14 +14,40 @@
 
 /* global React */
 
-import { ec } from '../ui.js';
+import { ec, ep, epc } from '../ui.js';
+import { Button } from '../components/button.js';
+import { SecretForm } from '../components/secret-form.js';
 
 export class RemoveSecretPage extends React.Component {
   constructor(props){
     super(props);
+
+    this._onYesClicked = this._onYesClicked.bind(this);
+    this._onNoClicked = this._onNoClicked.bind(this);
+  }
+
+  _onYesClicked() {
+    this.context.store.removeSecret(this.props.route.secret.id).then(()=>{
+      this.context.app.navigate({page: 'home'});
+    })
+  }
+
+  _onNoClicked() {
+    this.context.app.navigate({page: 'home'});
   }
 
   render() {
-    return ec('div', 'Remove!!!');
+    const children = [
+      epc('div',{key: 'question'}, 'Are you sure you would like to remove this secret?'),
+      ep(Button, {key: 'yes', handler: this._onYesClicked, label: 'Yes'}),
+      ep(Button, {key: 'no', handler: this._onNoClicked, label: 'No'}),
+      ep(SecretForm, {key: 'secret', readOnly: true, secretId: this.props.route.secret.id})
+    ];
+    return ec('div', children);
   }
 }
+
+RemoveSecretPage.contextTypes = {
+  store: React.PropTypes.object,
+  app: React.PropTypes.object
+};

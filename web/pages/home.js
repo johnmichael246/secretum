@@ -39,8 +39,8 @@ export class HomePage extends React.Component {
     copyTextToClipboard(secret.password);
   }
 
-  _onEdit(secretId) {
-    this.context.app.navigate({page: 'edit-secret', secretId: secretId});
+  _onEdit(secret) {
+    this.context.app.navigate({page: 'edit-secret', secretId: secret.id});
   }
 
   _onRemove(secret) {

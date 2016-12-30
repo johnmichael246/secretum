@@ -69,6 +69,8 @@ exports.build = function() {
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'output/webapp/fonts/fontawesome-webfont.woff2');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.ttf', 'output/webapp/fonts/fontawesome-webfont.ttf');
 
+	cpIfNeeded('build/simple.py', 'output/webapp/simple.py');
+
 	rollup.rollup({
 	  // The bundle's starting point. This file will be
 	  // included, along with the minimum necessary code
@@ -97,10 +99,10 @@ exports.build = function() {
 exports.runDev = function() {
 	nodemon({
 		verbose: true,
-		watch: ['./back-end','./web'],
-	  script: './back-end/service.js',
+		watch: ['./web'],
+	  script: './build/simple.py',
 	  ext: 'js json css cache html',
-		env: {NODE_ENV: 'development'}
+		execMap: {'py': 'python'}
   });
 
 	nodemon.on('start', function () {
@@ -124,7 +126,7 @@ function deleteFolderRecursive(path) {
         fs.unlinkSync(curPath);
       }
     });
-    fs.rmdirSync(path);
+    //fs.rmdirSync(path);
   }
 };
 

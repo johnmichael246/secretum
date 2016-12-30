@@ -12,33 +12,40 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Current dump of database schema
+CREATE SEQUENCE snapshot_id_seq
+START WITH 1
+INCREMENT BY 1
+NO MINVALUE
+NO MAXVALUE
+CACHE 1;
 
-CREATE SEQUENCE group_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE TABLE public.snapshots
+(
+  id integer NOT NULL DEFAULT (nextval('snapshot_id_seq'::regclass))::regclass,
+  parent integer,
+  posted timestamp without time zone NOT NULL,
+  device text NOT NULL,
+  delta text NOT NULL,
+  vault integer NOT NULL,
+  CONSTRAINT snapshot_id_pk PRIMARY KEY (id),
+  CONSTRAINT snapshot_parent_fk FOREIGN KEY (parent)
+      REFERENCES public.snapshots (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT snapshot_vault_fkey FOREIGN KEY (vault)
+      REFERENCES public.vaults (id) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
 
- CREATE TABLE secrets (
-    id integer DEFAULT nextval('secret_id_seq'::regclass) NOT NULL,
-    resource text NOT NULL,
-    principal text NOT NULL,
-    password text NOT NULL,
-    note text NOT NULL,
-    deleted boolean NOT NULL DEFAULT FALSE,
-    group_id integer NOT NULL REFERENCES groups (id)
-);
+CREATE SEQUENCE vault_id_seq
+START WITH 1
+INCREMENT BY 1
+NO MINVALUE
+NO MAXVALUE
+CACHE 1;
 
- CREATE SEQUENCE group_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
- CREATE TABLE groups (
-    id integer DEFAULT nextval('group_id_seq'::regclass) NOT NULL,
-    name text NOT NULL
-);
+CREATE TABLE public.vaults
+(
+  id integer NOT NULL DEFAULT nextval('vault_id_seq'::regclass),
+  name text NOT NULL,
+  CONSTRAINT vault_id_pk PRIMARY KEY (id)
+)

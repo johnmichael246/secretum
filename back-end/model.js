@@ -12,43 +12,75 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//const pg = require('pg');
+const pg = require('pg');
+const domain = require('domain');
 const winston = require('winston');
-const fs = require('fs');
 
 class Model {
 	constructor(config) {
 		this._config = config;
-		this.data = new Promise((resolve,reject) => {
-			fs.readFile('./back-end/mock.json', (err, data) => {
+	}
+
+	getVault(id) {
+		const str = `select * from vaults where id = $1`;
+		return this._query(str, [id]).then(res => res.rows.length > 0 ? res.rows[0] : null);
+	}
+
+	getSnapshot(id) {
+		const str = `select * from snapshots where id = $1`;
+		return this._query(str, [id]).then(res => res.rows.length > 0 ? res.rows[0] : null);
+	}
+
+	findVaults() {
+		const str = `select * from vaults`;
+		return this._query(str).then(res => res.rows);
+	}
+
+	insertCommit(commit) {
+		return this._transaction(client => {
+			client.query('insert into commits (parent, posted, device, patch)')
+		});
+	}
+
+	getNewCommits(trunkId, currentCommitId) {
+		currentCommitId = currentCommitId || null;
+		return this._query('select * from commits where trunk = $1 and (id > $2 or $2 is null)', [trunkId, currentCommitId])
+			.then(res => res.rows);
+	}
+
+	/*updateVault(name, blob) {
+		data.snapshots.push({id: Math.max})
+	}*/
+
+	_transaction(work) {
+		return new Promise((resolve, reject) => {
+			const txd = domain.create();
+			const client = new pg.Client(this._config);
+
+			txd.on('error', err => {
+				winston.error(err.stack);
+				client.query('rollback', err2 => {
+					if(err2) winston.error(err2.stack);
+				});
+				reject(err);
+			});
+
+			client.connect(err => {
 				if(err) {
 					reject(err);
-				} else {
-					resolve(JSON.parse(data));
+					return;
 				}
+
+				client.query('begin', err => {
+					if(err) throw err;
+				});
+
+				work(client);
 			});
 		});
 	}
 
-	getVault(name) {
-		return this.data.then(data => {
-			const vault = data.vaults.find(vault => vault.name === name);
-			return vault === undefined ? null : vault;
-		});
-	}
-
-	getSnapshot(id) {
-		return this.data.then(data => {
-			const ret = data.snapshots.find(s => s.id === id);
-			return ret === undefined ? null : ret;
-		});
-	}
-
-	findVaults() {
-		return this.data.then(data => data.vaults);
-	}
-
-	/*_query(str, params) {
+	_query(str, params) {
 		return new Promise((resolve, reject) => {
 			const client = new pg.Client(this._config);
 			client.connect(err => {
@@ -72,7 +104,7 @@ class Model {
 		});
 	}
 
-	findSecretsByKeywordAndGroup(keyword, groupId, deleted) {
+	/*findSecretsByKeywordAndGroup(keyword, groupId, deleted) {
 		winston.verbose(`Selecting${deleted||false?' deleted ':' '}secrets from (${groupId||'all'}) with (${keyword||'any'}).`);
 		const str = `select secrets.id as id, resource, principal, secrets.password, note,
 							groups.id as "groupId", groups.name as "groupName"

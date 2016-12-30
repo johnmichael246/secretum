@@ -30,12 +30,16 @@ export class SyncPage extends React.Component {
     work.push(this.context.syncer.getSyncStatus().then(status => {
       this.setState({status: status});
     }));
+    work.push(this.context.syncer.getUnsyncedChanges().then(changes => {
+      this.setState({changes: changes});
+    }));
 
     Promise.all(work).then(() => {
       this.setState({loading: false});
     });
 
-    this._doSync = this._doSync.bind(this);
+    this._sync = this._sync.bind(this);
+    this._switch = this._switch.bind(this);
   }
 
   render() {
@@ -46,19 +50,27 @@ export class SyncPage extends React.Component {
     } else {
       const status = this.state.status;
       const children = [
-        epc('span', {key: 'status'}, `Synced with ${status.vault.name} (${status.vault.currentSnapshotId}) at ${status.when}`),
+        epc('span', {key: 'status', onClick: this._sync}, status === null || status.when === undefined ? 'Not synced with anything.' : `Synced with ${status.vault.name} (${status.snapshot.id}) at ${status.when}`),
         epc('ui', {key: 'vaults'}, this.state.vaults.map(vault => epc('li',
-          {key: vault.name, onClick: ()=>this._doSync(vault)}, `${vault.name} (${vault.currentSnapshotId})`)))
+          {key: vault.name, onClick: ()=>this._switch(vault)}, `${vault.name}`))),
+        epc('div', {key: 'changes'}, `Changes: ${JSON.stringify(this.state.changes)||'none'}.`)
       ];
       return epc('div', {}, children);
     }
   }
 
-  _doSync(vault) {
+  _sync() {
     this.setState({syncing: true});
-    this.context.syncer.sync(vault).then(result => {
-      this.setState({syncing: false, status: result});
-    });
+    this.context.syncer.sync()
+      .then(status => ({status: status, changes: this.context.syncer.getUnsyncedChanges()}))
+      .then(update => this.setState(Object.assign({syncing: false}, update)));
+  }
+
+  _switch(vault) {
+    this.setState({syncing: true});
+    this.context.syncer.setup(vault.id)
+      .then(status => ({status: status, changes: this.context.syncer.getUnsyncedChanges()}))
+      .then(update => this.setState(Object.assign({syncing: false}, update)));
   }
 }
 
