@@ -14,32 +14,21 @@
 
 /* global React */
 
-import { ep } from './ui.js';
+import { ec, ep, epc } from '../ui.js';
+import { Button } from '../components/button.js';
 
-export class Router extends React.Component {
-  constructor(props) {
+export class ConfirmDialog extends React.Component {
+  constructor(props){
     super(props);
-
-    this.state = this._setup(props);
-
-    console.log(`New router (${props.id}) with ${props.rules.size} rules.`);
-  }
-
-  _setup(props) {
-    var current;
-    if(props.route === undefined) {
-      current = undefined;
-    } else {
-      current = props.rules.find(rule => rule.page === props.route.page).component;
-    }
-    return {current: current};
-  }
-
-  componentWillReceiveProps(props) {
-    this.setState(this._setup(props));
   }
 
   render() {
-    return ep(this.state.current, {route: this.props.route});
+    const title = epc('div', {key: 'title', className: 'dialog-title'}, 'Confirm');
+    const content = epc('div', {key: 'content', className: 'dialog-content'}, [
+      epc('div', {key: 'user-content'}, this.props.content),
+      ep(Button, {key: 'yes', handler: this.props.onYes, label: 'Yes'}),
+      ep(Button, {key: 'no', handler: this.props.onNo, label: 'No'}),
+    ]);
+    return epc('div', {className: 'dialog'}, [title, content]);
   }
 }

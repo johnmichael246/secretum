@@ -15,23 +15,16 @@
 /* global React ReactDOM */
 
 import { HomePage } from './pages/home.js';
-import { EditSecretPage } from './pages/edit-secret.js';
-import { RemoveSecretPage } from './pages/remove-secret.js';
 import { SyncPage} from './pages/sync.js';
 
 import { e, ep, epc } from './ui.js';
 import { Router } from './router.js';
 import { Store } from './store.js';
-import { Syncer } from './syncer.js';
 
 import { Button } from './components/button.js';
 
-Map.fromObject = function(obj) {
-	const map = new Map();
-	for(var key in obj) {
-		map.set(key,obj[key]);
-	}
-	return map;
+Object.values = function(obj) {
+	return Object.keys(obj).map(key => obj[key]);
 }
 
 class App extends React.Component {
@@ -40,7 +33,7 @@ class App extends React.Component {
 		this.state = {loading: true, route: {page: 'home'}};
 
 		this._initDatabase().then(db => {
-			this.store = new Store({endpoint: 'http://localhost:8001', db: db});
+			this.store = new Store({endpoint: 'http://192.168.1.123:8001', db: db});
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
@@ -48,6 +41,14 @@ class App extends React.Component {
 
 	navigate(route) {
 		this.setState({route: route});
+	}
+
+	showModal(dialog, config) {
+		this.setState({modal: ep(dialog, config)})
+	}
+
+	hideModal() {
+		this.setState({modal: undefined});
 	}
 
 	getChildContext() {
@@ -66,12 +67,11 @@ class App extends React.Component {
 
 		var rules = [
 			{page: 'home', component: HomePage},
-			{page: 'sync', component: SyncPage},
-			{page: 'edit-secret', component: EditSecretPage},
-			{page: 'remove-secret', component: RemoveSecretPage}
+			{page: 'sync', component: SyncPage}
 		];
 
-		const tabs = [ ep(Button, {
+		const tabs = [
+			ep(Button, {
 				key: 'home', label: 'Home', icon: 'home', toggled: this.state.route.page==='home',
 				handler: ()=>this.setState({route: {page: 'home'}})}),
 			ep(Button, {
@@ -79,11 +79,17 @@ class App extends React.Component {
 				handler: ()=>this.setState({route: {page: 'sync'}})})
 		];
 
-		return epc("div", {className: "app"}, [
+		const children = [
 			epc("div", {key: "header", className: "header"}, "Secretum"),
 			ep(Router, {key: "router", className: "page", rules: rules, route: this.state.route, id: "router-main"}),
 			epc("div", {key: "footer", className: "footer"}, tabs)
-		]);
+		];
+
+		if(this.state.modal !== undefined) {
+			children.push(epc('div', {key: 'modal', className: 'modal'}, this.state.modal));
+		}
+
+		return epc("div", {className: "app"}, children);
 	}
 
 	_initDatabase() {
@@ -102,8 +108,8 @@ class App extends React.Component {
 			openRequest.onupgradeneeded = () => {
 				db = openRequest.result;
 
-				db.createObjectStore('secrets', {keyPath: 'id'});
-				db.createObjectStore('groups', {keyPath: 'id'});
+				db.createObjectStore('secrets', {keyPath: 'id', autoIncrement: true});
+				db.createObjectStore('groups', {keyPath: 'id', autoIncrement: true});
 				db.createObjectStore('meta');
 
 				console.log('Database scheme upgraded or initialized!');

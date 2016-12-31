@@ -41,9 +41,9 @@ export class DataTable extends React.Component {
 		}
 	}
 
-	_buildHeaderRow(headers, columns) {
+	_buildHeaderRow(columns) {
 		return epc("div", {key: "header", className: "header"},
-		headers.map((h,i) => epc("div", {key: columns[i], className: `cell ${columns[i]}`}, h)));
+		Object.keys(columns).map(name => epc("div", {key: name, className: `cell ${name}`}, columns[name])));
 	}
 
 	componentWillReceiveProps(props) {
@@ -51,28 +51,33 @@ export class DataTable extends React.Component {
 	}
 
 	_onRowClick(idx) {
-		var detailed = Array.from(this.state.detailed);
-		detailed[idx] = !detailed[idx];
-		this.setState({detailed: detailed});
+		if(this.props.detailsFactory !== undefined) {
+			var detailed = Array.from(this.state.detailed);
+			detailed[idx] = !detailed[idx];
+			this.setState({detailed: detailed});
+		}
 	}
 
 	render() {
 		var children = [];
-		if(this.props.headers !== undefined) {
-			children.push(this._buildHeaderRow(this.props.headers,this.props.columns));
-		}
+		children.push(this._buildHeaderRow(this.props.columns));
 
 		const buildCell = (col,val) => epc("div", {key: col, className: `cell ${col}`}, val);
 		const buildRow = (row,idx) => {
-			const props = {key: idx, className: "row", onClick: () => this._onRowClick(idx)};
+			const props = {
+				key: idx,
+				className: `row ${this.props.detailsFactory === undefined ? '' : 'selectable'}`,
+				onClick: () => this._onRowClick(idx)
+			};
 			// Additional class name for currently selected row
 			if(this.state.detailed[idx]) {
 				props.className += ' selected';
 			}
 
-			return epc("div", props, this.props.columns.map((col) => buildCell(col,row[col])));
+			return epc("div", props, Object.keys(this.props.columns).map((col) => buildCell(col,row[col])));
 		};
 
+		const body = [];
 		if(!this.state.loading) {
 			const rows = this.state.data.map(buildRow);
 			if(this.props.detailsFactory !== undefined) {
@@ -85,10 +90,12 @@ export class DataTable extends React.Component {
 					inserted = inserted+1;
 				});
 			}
-			children.push.apply(children, rows);
+			body.push.apply(body, rows);
 		} else {
-			children.push(epc("div", {key: "loading"}, "Loading..."));
+			body.push(epc("div", {key: "loading"}, "Loading..."));
 		}
+
+		children.push(epc('div', {key: 'body', className: 'body'},body));
 
 		return epc("div", {className: `table ${this.props.className}`}, children);
 	}

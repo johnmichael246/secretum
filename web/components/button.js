@@ -18,6 +18,10 @@ export function Button(props) {
 	const icon = ep('div', {key: 'icon', className: `action-icon fa fa-${props.icon}`});
 	const label = epc('div', {key: 'label', className: 'action-label'}, props.label);
 
+	if(props.handler === undefined) {
+		throw new Error('Attempted to create a button without a callback');
+	}
+
 	return epc('div', {
 		key: props.label,
 		className: props.toggled ? 'button toggled' : 'button',

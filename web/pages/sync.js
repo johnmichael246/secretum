@@ -14,21 +14,31 @@
 
 /* global React */
 
-import { epc } from '../ui.js';
+import { ep, epc } from '../ui.js';
+import { Button } from '../components/button.js';
+import { DataTable } from '../components/data-table.js';
+import { ConfirmDialog } from '../dialogs/confirm.js';
 
 export class SyncPage extends React.Component {
   constructor(props, context) {
     super(props);
     this.context = context;
 
-    this.state = {loading: true};
+    this.state = this._load();
 
+    this._sync = this._sync.bind(this);
+    this._switch = this._switch.bind(this);
+    this._onVaultSelect = this._onVaultSelect.bind(this);
+    this._onClear = this._onClear.bind(this);
+  }
+
+  _load() {
     const work = [];
     work.push(this.context.syncer.findRemoteVaults().then(vaults => {
       this.setState({vaults: vaults});
     }));
     work.push(this.context.syncer.getSyncStatus().then(status => {
-      this.setState({status: status});
+      this.setState({status: status, selectedVaultIndex: 0});
     }));
     work.push(this.context.syncer.getUnsyncedChanges().then(changes => {
       this.setState({changes: changes});
@@ -38,25 +48,105 @@ export class SyncPage extends React.Component {
       this.setState({loading: false});
     });
 
-    this._sync = this._sync.bind(this);
-    this._switch = this._switch.bind(this);
+    return {loading: true};
   }
 
   render() {
     if(this.state.loading) {
-      return epc("div", {}, 'Fetching metadata from the server...');
+      return epc("div", {className: 'page sync'}, 'Fetching metadata from the server...');
     } else if(this.state.syncing) {
-      return epc("div", {}, 'Syncing the vault with the server...');
+      return epc("div", {className: 'page sync'}, 'Syncing the vault with the server...');
     } else {
-      const status = this.state.status;
-      const children = [
-        epc('span', {key: 'status', onClick: this._sync}, status === null || status.when === undefined ? 'Not synced with anything.' : `Synced with ${status.vault.name} (${status.snapshot.id}) at ${status.when}`),
-        epc('ui', {key: 'vaults'}, this.state.vaults.map(vault => epc('li',
-          {key: vault.name, onClick: ()=>this._switch(vault)}, `${vault.name}`))),
-        epc('div', {key: 'changes'}, `Changes: ${JSON.stringify(this.state.changes)||'none'}.`)
-      ];
-      return epc('div', {}, children);
+      const children = [];
+
+      if(this.state.status !== null) {
+        let status = this.state.status;
+        let vault = status.vault||{};
+        let snapshot = status.snapshot||{};
+        let datum = {
+          id: 0,
+          vaultId: (vault.id)||'',
+          vaultName: (vault.name)||'',
+          lastSync: status.when||'',
+          lastDevice: snapshot.device||''
+        };
+
+        children.push(ep(DataTable, {
+          key: 'status',
+          className: 'sync-status',
+          columns: {
+            'vaultId': 'Vault ID',
+            'vaultName': 'Vault Name',
+            'lastSync': 'Last Sync',
+            'lastDevice': 'Last Device'
+          },
+          data: [datum]
+        }));
+
+        children.push(
+          ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
+        );
+      }
+
+
+      const changes = [];
+      // Injects action into change records (e.g. destructs one level of the tree)
+      if(this.state.changes.secrets !== undefined &&
+          Object.keys(this.state.changes.secrets).length > 0) {
+        let actions = {insert: 'New', update: 'Updated', delete: 'Removed'};
+        Object.keys(actions).forEach(action => {
+          changes.push.apply(changes,(this.state.changes.secrets[action]||[])
+            .map(change => Object.assign({action: actions[action]}, change)));
+        });
+      }
+
+      children.push(
+        ep(DataTable, {
+          key: 'changes',
+          className: 'sync-changes',
+          columns: {action: 'Action', id: 'ID', resource: 'Resource', principal: 'Principal'},
+          data: changes
+        })
+      );
+
+      if(Object.keys(this.state.changes).length === 0) {
+        children.push(
+          epc('select', {key: 'vaults', value: this.state.selectedVaultIndex, onChange: this._onVaultSelect},
+            this.state.vaults.map(vault => epc('option', {key: vault.id, value: vault.id}, `${vault.name}`)))
+        );
+        children.push(
+          ep(Button, {key: '!switch', handler: this._switch, label: 'Connect', icon: 'plug'})
+        );
+      }
+
+      if(this.state.status === null && Object.keys(this.state.changes).length > 0
+        || this.state.status !== null && Object.keys(this.state.changes).length === 0) {
+        children.push(
+          ep(Button, {key: '!clear', label: 'Clear', icon: 'warning', handler: this._onClear})
+        );
+      }
+
+      return epc('div', {className: 'page sync'}, children);
     }
+  }
+
+  _onClear() {
+    this.context.app.showModal(ConfirmDialog, {
+      content: 'Do you really want to clear the local store?',
+      onYes: () => {
+        this.context.store.clear().then(() => {
+          this.setState(this._load())
+        });
+        this.context.app.hideModal();
+      },
+      onNo: () => {
+        this.context.app.hideModal();
+      }
+    });
+  }
+
+  _onVaultSelect(event) {
+    return this.setState({selectedVaultIndex: event.target.value});
   }
 
   _sync() {
@@ -66,14 +156,16 @@ export class SyncPage extends React.Component {
       .then(update => this.setState(Object.assign({syncing: false}, update)));
   }
 
-  _switch(vault) {
+  _switch() {
     this.setState({syncing: true});
-    this.context.syncer.setup(vault.id)
+    this.context.syncer.setup(this.state.vaults[this.state.selectedVaultIndex].id)
       .then(status => ({status: status, changes: this.context.syncer.getUnsyncedChanges()}))
       .then(update => this.setState(Object.assign({syncing: false}, update)));
   }
 }
 
 SyncPage.contextTypes = {
-  syncer: React.PropTypes.object
+  syncer: React.PropTypes.object,
+  store: React.PropTypes.object,
+  app: React.PropTypes.object
 };

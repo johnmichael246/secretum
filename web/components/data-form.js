@@ -156,15 +156,19 @@ export class DataForm extends React.Component {
 		}
 
 		if(this.props.onSubmit !== undefined) {
-			let buttonProps = {key: "!submit", type: "button", value: "Submit!",
-			onClick: this._onSubmit, disabled: this.state.loading};
-			children.push(ep("input", buttonProps));
+			let buttonProps = {
+				key: "!submit", label: "Save", icon: 'check-square',
+				handler: this._onSubmit, disabled: this.state.loading
+			};
+			children.push(ep(Button, buttonProps));
 		}
 
 		if(this.props.onCancel !== undefined) {
-			let buttonProps = {key: "!cancel", type: "button", value: "Cancel",
-			onClick: this._onCancel, disabled: this.state.loading};
-			children.push(ep("input", buttonProps));
+			let buttonProps = {
+				key: "!cancel", label: "Cancel", icon: 'times-rectangle',
+				handler: this._onCancel, disabled: this.state.loading
+			};
+			children.push(ep(Button, buttonProps));
 		}
 
 		return epc("div", {className: `data-form ${this.props.className}`}, children)

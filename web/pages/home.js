@@ -17,6 +17,11 @@
 import { ep, epc} from '../ui.js';
 import { SearchTool } from '../components/search-tool.js';
 import { SecretsTable } from '../components/secrets-table.js';
+import { ConfirmDialog } from '../dialogs/confirm.js';
+import { SecretEditorDialog } from '../dialogs/secret-editor.js';
+import { SecretForm } from '../components/secret-form.js';
+import { Button } from '../components/button.js';
+
 
 export class HomePage extends React.Component {
   constructor(props, context) {
@@ -29,6 +34,7 @@ export class HomePage extends React.Component {
     this._onCopy = this._onCopy.bind(this);
     this._onEdit = this._onEdit.bind(this);
     this._onRemove = this._onRemove.bind(this);
+    this._onNew = this._onNew.bind(this);
   }
 
   _onSearch(query) {
@@ -40,11 +46,54 @@ export class HomePage extends React.Component {
   }
 
   _onEdit(secret) {
-    this.context.app.navigate({page: 'edit-secret', secretId: secret.id});
+    const props = {
+      secretId: secret.id,
+      onSubmit: (secret) => {
+        this.context.app.hideModal();
+        this.context.store.saveSecret(secret).then(() => {
+          this.setState({secrets: this.context.store.findSecrets(this.state.query)});
+        });
+      },
+      onCancel: () => this.context.app.hideModal()
+    };
+    this.context.app.showModal(SecretEditorDialog, props);
+  }
+
+  _onNew() {
+    const props = {
+      secretId: null,
+      title: 'New Secret',
+      onSubmit: (secret) => {
+        this.context.app.hideModal();
+        this.context.store.createSecret(secret).then(() => {
+          this.setState({secrets: this.context.store.findSecrets(this.state.query)});
+        });
+      },
+      onCancel: () => this.context.app.hideModal()
+    };
+    this.context.app.showModal(SecretEditorDialog, props);
   }
 
   _onRemove(secret) {
-    this.context.app.navigate({page: 'remove-secret', secret: secret});
+    this.context.app.showModal(ConfirmDialog, {
+      content: [
+        epc('div', {key: 'question'}, 'Are you sure you would like to remove this secret?'),
+        ep(SecretForm, {
+          key: 'secret',
+          readOnly: true,
+          secretId: secret.id,
+          fields: ['id', 'groupName', 'resource', 'principal']
+        })
+      ],
+      onYes: ()=> {
+        this.context.store.removeSecret(secret.id)
+          .then(() => this.setState({
+            secrets: this.context.store.findSecrets(this.state.query)
+          }));
+        this.context.app.hideModal();
+      },
+      onNo: () => this.context.app.hideModal()
+    });
   }
 
   componentDidMount() {
@@ -61,9 +110,10 @@ export class HomePage extends React.Component {
 
   render() {
     const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
-    return epc("div", {className: "home"}, [
-      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()}),
-      ep(SecretsTable, {key: "table", secrets: this.state.secrets, actionHandlers: handlers})
+    return epc("div", {className: "page home"}, [
+      ep(SecretsTable, {key: "table", secrets: this.state.secrets, actionHandlers: handlers}),
+      ep(Button, {key: '!new', handler: this._onNew, label: 'New Secret', icon: 'plus-square'}),
+      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()})
     ]);
   }
 }

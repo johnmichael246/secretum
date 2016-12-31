@@ -25,7 +25,14 @@ export class SecretForm extends React.Component {
 	render() {
 		const groups = this.context.store.findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const readOnly = this.props.readOnly || false;
-		const secret = this.context.store.getSecret(this.props.secretId);
+		const secret = this.props.secretId === null ? {
+			id: '',
+			resource: '',
+			groupId: 1,
+			principal: '',
+			password: '',
+			note: ''
+		} : this.context.store.getSecret(this.props.secretId);
 
 		const fields = [
 			{name: "id", type: "text", label: "ID", readOnly: true},
@@ -34,7 +41,8 @@ export class SecretForm extends React.Component {
 			{name: "principal", type: "text", label: "Principal", readOnly: readOnly},
 			{name: "password", type: "text", label: "Password", readOnly: readOnly},
 			{name: "note", type: "textarea", label: "Note", readOnly: readOnly}
-		];
+		].filter(field => this.props.fields === undefined || this.props.fields.includes(field.name));
+
 		const form = {
 			className: this.props.className||'' + ' secret-form',
 			title: this.props.title,

@@ -65,12 +65,25 @@ export function SecretsTable(props, context) {
       .then(groups => secrets.map((s,i) => Object.assign(s,{groupName: groups[i].name})));
   });
 
+  const columns = {
+    id: "ID", groupName: 'Group', resource: 'Resource', principal: 'Principal',
+    note: 'Note', actions: 'Actions'
+  };
+
+  // If columns passed in props, show those only
+  if(props.columns !== undefined) {
+    Object.keys(columns).forEach(columnName => {
+      if(!props.columns.includes(columnName)) {
+        delete columns[columnName];
+      }
+    });
+  }
+
   return ep(DataTable, {
     className: "secrets",
-    headers: ["ID","Group", "Resource","Principal","Note","Actions"],
-    columns: ["id", "groupName", "resource", "principal", "note", "actions"],
+    columns: columns,
     data: data,
-    detailsFactory: detailsFactory
+    detailsFactory: props.details === undefined || props.details ? detailsFactory : undefined
   });
 }
 

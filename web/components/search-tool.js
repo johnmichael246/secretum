@@ -33,7 +33,7 @@ export class SearchTool extends React.Component {
 
 	_onChange(event) {
 		var newValue = event.target.value;
-		if(event.target.name === 'group') newValue = parseInt(newValue);
+		if(event.target.name === 'group') newValue = parseInt(newValue)||undefined;
 		const update = {[event.target.name]: newValue};
 		this.setState(update);
 
@@ -46,7 +46,7 @@ export class SearchTool extends React.Component {
 		const groups = this.state.groups.map(renderGroup);
 
 		// An option to disable group filtering, also a placeholder for a hint
-		groups.unshift(epc("option", {key: 'undefined', value: undefined}, 'All Groups'));
+		groups.unshift(epc("option", {key: 'undefined'}, 'All Groups'));
 
 		return epc("div", {className: "search"}, [
 			epc("select", {key: "group", name: "group", onChange: this._onChange, disabled: groups.length === 0}, groups),

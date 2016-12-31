@@ -68,22 +68,20 @@ class App(http.server.BaseHTTPRequestHandler):
 
 
     def meta(self, args):
-        db = psycopg2.connect("dbname=secretum user=postgres password='postgres'")
-        cur = db.cursor()
+        with psycopg2.connect("dbname=secretum user=postgres password='postgres'") as db:
+            with db.cursor() as cur:
+                cur.execute('select id, name from vaults')
+                data = cur.fetchall()
 
-        cur.execute('select id, name from vaults')
-        data = cur.fetchall()
-        db.close()
+                doc = [{'id': row[0], 'name': row[1]} for row in data]
 
-        doc = [{'id': row[0], 'name': row[1]} for row in data]
+                data = bytearray(json.dumps(doc), 'utf-8')
 
-        data = bytearray(json.dumps(doc), 'utf-8')
-
-        self.send_response(200, 'Sure')
-        self.send_header('Content-length', len(data))
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(data)
+                self.send_response(200, 'Sure')
+                self.send_header('Content-length', len(data))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(data)
 
     def fetch(self, args):
         if not 'vaultId' in args:
@@ -95,20 +93,17 @@ class App(http.server.BaseHTTPRequestHandler):
         vaultId = args['vaultId'][0]
         since = args['sinceCommitId'][0] if 'sinceCommitId' in args else 0
 
-        db = psycopg2.connect("dbname=secretum user=postgres password='postgres'")
-        cur = db.cursor()
+        with psycopg2.connect("dbname=secretum user=postgres password='postgres'") as db:
+            with db.cursor() as cur:
+                cur.execute('select id, vault, posted, device, delta from snapshots where vault = %s and id > %s', (vaultId, since))
+                snapshots = [{'id': row[0], 'vault': row[1], 'posted': row[2], 'device': row[3], 'delta': row[4]}
+                             for row in cur.fetchall()]
 
-        cur.execute('select id, vault, posted, device, delta from snapshots where vault = %s and id > %s', (vaultId, since))
-        snapshots = [{'id': row[0], 'vault': row[1], 'posted': row[2], 'device': row[3], 'delta': row[4]}
-                     for row in cur.fetchall()]
+                cur.execute('select id, name from vaults where id = %s', (vaultId))
+                row = cur.fetchone()
+                vault = {'id': row[0], 'name': row[1]}
 
-        cur.execute('select id, name from vaults where id = %s', (vaultId))
-        row = cur.fetchone()
-        vault = {'id': row[0], 'name': row[1]}
-
-        db.close()
-
-        data = bytearray(json.dumps({'vault': vault, 'snapshots': snapshots}, cls=DatetimeEncoder),'utf-8')
+        data = bytearray(json.dumps({'vault': vault, 'snapshots': snapshots}, cls=DatetimeEncoder), 'utf-8')
 
         self.send_response(200, 'Sure')
         self.send_header('Content-length', len(data))
