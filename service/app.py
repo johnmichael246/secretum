@@ -137,7 +137,7 @@ class App(http.server.BaseHTTPRequestHandler):
 
                 # Getting the new ID back
                 row = cur.fetchone()
-                snapshot = {'id': row[0], 'parent': row[1], 'device': row[2], 'vault': row[3], 'delta': row[4]}
+                snapshot = {'id': row[0], 'parent': row[1], 'posted': row[2], 'device': row[3], 'vault': row[4], 'delta': row[5]}
                 data = bytearray(json.dumps(snapshot, cls=DatetimeEncoder), 'utf-8')
 
                 db.commit()

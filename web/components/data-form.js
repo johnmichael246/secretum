@@ -23,6 +23,7 @@ export class DataForm extends React.Component {
 		this.state = this._setup(props);
 
 		this._onFieldChange = this._onFieldChange.bind(this);
+		this._onSelectChange = this._onSelectChange.bind(this);
 		this._onSubmit = this._onSubmit.bind(this);
 		this._onCancel = this._onCancel.bind(this);
 	}
@@ -68,6 +69,11 @@ export class DataForm extends React.Component {
 		this.setState({data: Object.assign(this.state.data, update)});
 	}
 
+	_onSelectChange(evt) {
+		const update = {[evt.target.name]: parseInt(evt.target.value)};
+		this.setState({data: Object.assign(this.state.data, update)});
+	}
+
 	_buildTextField(field) {
 		const props = { key: "input", type: "text", name: field.name, onChange: this._onFieldChange };
 
@@ -86,7 +92,7 @@ export class DataForm extends React.Component {
 	}
 
 	_buildSelectField(field) {
-		const props = { key: "input", name: field.name, onChange: this._onFieldChange };
+		const props = { key: "input", name: field.name, onChange: this._onSelectChange };
 		const options = [];
 
 		if(this.state.loading) {
