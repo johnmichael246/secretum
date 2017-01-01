@@ -3,7 +3,7 @@ export function SyncThenable(handler) {
   var result;
   const chain = [];
 
-  const iSyncThenable = value => value !== undefined
+  const isThenable = value => value !== undefined
     && typeof value === 'object'
     && value.hasOwnProperty('then')
     && value.then instanceof Function;
@@ -41,7 +41,7 @@ export function SyncThenable(handler) {
 
   self.resolve = value => {
     if(state !== 'pending') throw new Error('Attempting to resolve a non-pending promise.');
-    if(iSyncThenable(value)) {
+    if(isThenable(value)) {
       value.then(newValue => process(newValue,'fulfilled'),
                 newValue => process(newValue,'rejected'));
     } else {
@@ -51,7 +51,7 @@ export function SyncThenable(handler) {
 
   self.reject = value => {
     if(state !== 'pending') throw new Error('Attempting to reject a non-pending promise.');
-    if(iSyncThenable) {
+    if(isThenable(value)) {
       value.then(newValue => process(newValue,'fulfilled'),
                 newValue => process(newValue,'rejected'));
     } else {
@@ -83,7 +83,7 @@ export function SyncThenable(handler) {
         innerResult = rejected(result);
       }
 
-      if(iSyncThenable(innerResult)) {
+      if(isThenable(innerResult)) {
         const inner = SyncThenable();
         innerResult.then(newValue => inner.resolve(newValue),
                         newValue => inner.reject(newValue));

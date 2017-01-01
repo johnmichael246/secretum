@@ -34,9 +34,6 @@ export class SyncPage extends React.Component {
 
   _load() {
     const work = [];
-    work.push(this.context.syncer.findRemoteVaults().then(vaults => {
-      this.setState({vaults: vaults});
-    }));
     work.push(this.context.syncer.getSyncStatus().then(status => {
       this.setState({status: status, selectedVaultIndex: 0});
     }));
@@ -46,6 +43,10 @@ export class SyncPage extends React.Component {
 
     Promise.all(work).then(() => {
       this.setState({loading: false});
+    });
+
+    this.context.syncer.findRemoteVaults().then(vaults => {
+      this.setState({vaults: vaults});
     });
 
     return {loading: true};
@@ -109,7 +110,7 @@ export class SyncPage extends React.Component {
         })
       );
 
-      if(Object.keys(this.state.changes).length === 0) {
+      if(Object.keys(this.state.changes).length === 0 && this.state.vaults !== undefined) {
         children.push(
           epc('select', {key: 'vaults', value: this.state.selectedVaultIndex, onChange: this._onVaultSelect},
             this.state.vaults.map(vault => epc('option', {key: vault.id, value: vault.id}, `${vault.name}`)))

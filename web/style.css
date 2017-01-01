@@ -33,7 +33,7 @@ body {
 #root {
 	height: 100%;
 	position: absolute;
-	overflow: scroll;
+	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	top:0;
 	left:0;
