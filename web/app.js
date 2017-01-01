@@ -125,5 +125,29 @@ App.childContextTypes = {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+	overscroll(document.querySelector('#root'));
+	document.body.addEventListener('touchmove', function(evt) {
+		if(!evt._isScroller) {
+			evt.preventDefault()
+		}
+	});
 	ReactDOM.render(e(App), document.getElementById("root"));
 });
+
+var overscroll = function(el) {
+  el.addEventListener('touchstart', function() {
+    const top = el.scrollTop;
+		const totalScroll = el.scrollHeight;
+		const currentScroll = top + el.offsetHeight;
+
+    if(top === 0) {
+      el.scrollTop = 1;
+    } else if(currentScroll === totalScroll) {
+      el.scrollTop = top - 1;
+    }
+  });
+  el.addEventListener('touchmove', function(evt) {
+    if(el.offsetHeight < el.scrollHeight)
+      evt._isScroller = true
+  });
+}
