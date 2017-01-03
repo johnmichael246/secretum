@@ -51,21 +51,20 @@ export class Store {
     );
   }
 
-  saveSecret(secret) {
+  saveSecret(newSecret) {
+    this._transaction(['meta','secrets'], {mode: 'readwrite', strategy: 'new'});
     const stores = this._openStores(['meta','secrets'], 'readwrite');
 
-    const updateChanges = thenify(stores.meta.get('changes'))
-      .then(changes => {
-        if(changes.secrets === undefined) changes.secrets = {};
-        if(changes.secrets.update === undefined) changes.secrets.update = [];
-        changes.secrets.update.push(secret);
+    const thenable = SyncThenable.all([
+      thenify(stores.secrets.get(newSecret.id)),
+      thenify(stores.meta.get('changes'))
+    ]).then(([oldSecret,changes]) => {
+      if(oldSecret === undefined) throw new Error(`Attempting to update a non-existing secret with ID ${newSecret.id}`);
+      changes.push({operator: 'update', table: 'secrets', record: newSecret});
+      return thenify(stores.meta.put(changes, 'changes'));
+    }).then(()=>thenify(stores.secrets.put(newSecret)));
 
-        return thenify(stores.meta.put(changes, 'changes'));
-    });
-
-    const putSecret = thenify(stores.secrets.put(secret));
-
-    return SyncThenable.all([updateChanges, putSecret]);
+    return Promise.resolve(thenable);
   }
 
   createSecret(secret) {
@@ -78,10 +77,7 @@ export class Store {
     const thenable = thenify(stores.secrets.put(secret)).then(id => {
       secret.id = id;
     }).then(() => thenify(stores.meta.get('changes'))).then(changes => {
-      if(changes.secrets === undefined) changes.secrets = {};
-      if(changes.secrets.update === undefined) changes.secrets.insert = [];
-      changes.secrets.insert.push(secret);
-
+      changes.push({operator: 'insert', table: 'secrets', record: secret});
       return thenify(stores.meta.put(changes, 'changes'));
     });
 
@@ -95,11 +91,7 @@ export class Store {
       thenify(stores.meta.get('changes'))
     ]).then(([secret,changes]) => {
       if(secret === null) throw new Error(`Attempting to remove a non-existing secret with ID ${id}`);
-
-      if(changes.secrets === undefined) changes.secrets = {};
-      if(changes.secrets.delete === undefined) changes.secrets.delete = [];
-      changes.secrets.delete.push(secret);
-
+      changes.push({operator: 'delete', table: 'secrets', record: secret});
       return thenify(stores.meta.put(changes, 'changes'));
     }).then(()=>thenify(stores.secrets.delete(id)));
 
@@ -191,9 +183,12 @@ export class Store {
 
   getSyncStatus() {
     this._transaction(['meta'], {strategy: 'new'});
-
-    const ret = this._openStore('meta').get('sync');
-    return Promise.resolve(thenify(ret)).then(res => res === undefined ? null : res);
+    return Promise.resolve(thenify(this._openStore('meta').get('sync'))).then(res =>  {
+      const ret = res||{};
+      ret.snapshot =  ret.snapshot||null;
+      ret.vault =  ret.vault||null;
+      return ret;
+    });
   }
 
   sync() {
@@ -215,27 +210,86 @@ export class Store {
         this._transaction(['secrets','groups','meta'], {mode: 'readwrite', strategy: 'new'});
 
         const stores = this._openStores(['secrets','groups','meta'], 'readwrite');
-
         const work = [];
 
+        // Preparing a complete array of commands to apply against the local store
+        const delta = snapshots.select('delta').map(JSON.parse).flatten();
+
+        // Searching for the highest new IDs in each table
+        // to rebase the unsynced local IDs on top of it
+        const maxIds = delta
+          .filter(o => o.operator === 'insert')
+          .groupBy('table')
+          .mapValues(Array.selector('record'))
+          .mapValues(Array.selector('id'))
+          .mapValues(Array.aggregator(Math.max));
+
+        meta.changes = meta.changes||[];
+
+        for(const table of Object.keys(maxIds)) {
+          if(maxIds[table] === -Infinity) continue;
+
+          let nextKey = maxIds[table]+1;
+          const rebase = {};
+
+          for(const command of meta.changes) {
+            if(command.operator === 'insert') {
+              // Saving the mapping to adjust the local changes and the IDB
+              rebase[command.record.id] = nextKey;
+              command.record.id = nextKey;
+              nextKey = nextKey+1;
+            } else if(command.operator === 'update') {
+              if(rebase.hasOwnProperty(command.record.id)) {
+                command.record.id = rebase[command.record.id];
+              }
+            } else if(command.operator === 'delete') {
+              if(rebase.hasOwnProperty(command.record.id)) {
+                command.record.id = rebase[command.record.id];
+                // Removing from the rebase, because this record's ID
+                // should not be in further changes or local store
+                delete rebase[command.record.id];
+              }
+            } else {
+              throw new Error(`Unknown operator in the local changes: ${command.operator}`);
+            }
+          }
+
+          for(const oldKey of Object.keys(rebase)) {
+            const thenable = thenify(stores[table].get(oldKey)).then(record => {
+              record.id = rebase[oldKey];
+              return SyncThenable.all([
+                thenify(stores[table].add(record)),
+                thenify(stores[table].delete(oldKey))
+              ]);
+            });
+            work.push(thenable);
+          }
+        }
+
+        // Preparing locally updated records to detect merge conflicts
+        const updatedIds = meta.changes
+          .filter(c => c.operator === 'update')
+          .groupBy('table')
+          .mapValues(Array.selector('id'));
+
         // Updating each store with corresponding changes in the shapshots
-        snapshots.forEach(snapshot => {
-          const delta = JSON.parse(snapshot.delta);
-          Object.keys(delta).forEach(storeName => {
-            if(Object.keys(delta[storeName]).includes('insert')) {
-              delta[storeName].insert.forEach(datum => work.push(stores[storeName].put(datum)));
-              // TODO: increment IDs of changes in the local store
+        work.push.apply(work, delta.map(command => {
+          if(command.operator === 'insert') {
+            return thenify(stores[command.table].add(command.record));
+          } else if(command.operator === 'update') {
+            if(command.table in updatedIds && updatedIds[command.table].includes(command.record.id)) {
+              // TODO: throw information neccesary to let the user resolve this conflict
+              throw new Error(`A merge conflict detected for ID ${command.record.id} in ${command.table}!`);
             }
-            if(Object.keys(delta[storeName]).includes('delete')) {
-              delta[storeName].delete.forEach(datum => work.push(stores[storeName].delete(datum.id)));
-              // TODO: unflag local removals if IDs match
-            }
-            if(Object.keys(delta[storeName]).includes('update')) {
-              delta[storeName].update.forEach(datum => work.push(stores[storeName].put(datum)));
-              // TODO: report merge conflict if IDs match
-            }
-          });
-        });
+            return thenify(stores[command.table].put(command.record));
+          } else if(command.operator === 'delete') {
+            // Removing unsynced changes (updates and deletes) to remotely deleted records
+            meta.changes.remove(c => c.record.id === command.record.id);
+            return thenify(stores[command.table].remove(command.record.id));
+          } else {
+            throw new Error(`An unknown operator in the remote delta's command: ${command.operator}`);
+          }
+        }));
 
         // Updating sync status
         meta.sync = meta.sync||{}
@@ -244,23 +298,20 @@ export class Store {
           meta.sync.snapshot = snapshots[snapshots.length-1];
         }
         meta.sync.when = (new Date()).toISOString();
-        work.push(stores.meta.put(meta.sync,'sync'));
-        if(meta.changes === undefined) {
-          meta.changes = {};
-          work.push(stores.meta.put({}, 'changes'));
-        }
 
-        return SyncThenable.all(work.map(thenify))
-          .then(()=>({meta: meta}));
+        work.push(thenify(stores.meta.put(meta.sync,'sync')));
+        work.push(thenify(stores.meta.put(meta.changes, 'changes')));
+
+        return SyncThenable.all(work).then(()=>({meta: meta}));
       }).then(({meta: meta}) => {
         // If not dirty, pass context forward
-        if(this._areChangesEmpty(meta.changes)) {
+        if(meta.changes.length === 0) {
           return {meta: meta};
         }
 
         // Otherwise, post changes and update the sync status
         return this._post('/save', {params: {vaultId: meta.sync.vault.id}, body: meta.changes}).then(snapshot => {
-          meta.changes = {};
+          meta.changes = [];
           meta.sync.snapshot = snapshot;
           meta.sync.when = (new Date()).toISOString();
           const store = this._openStore('meta', 'readwrite');
@@ -270,12 +321,6 @@ export class Store {
           ].map(thenify));
         }).then(()=>({meta: meta}));
       }).then(({meta: meta}) => meta.sync);
-  }
-
-  _areChangesEmpty(changes) {
-    return changes===undefined
-    ||(Object.values(changes).map(storeChanges => Object.values(storeChanges).map(x=>x.length))
-      .reduce((a,v)=>a+v,0) === 0);
   }
 
   setup(vaultId) {
@@ -288,14 +333,14 @@ export class Store {
     return Promise.resolve(
       SyncThenable.all([
         meta.put({vault: {id: vaultId}}, 'sync'),
-        meta.put({}, 'changes')
+        meta.put([], 'changes')
       ].map(thenify))
         .then(()=>this._sync())
     );
   }
 
   isDirty() {
-    return this._storeGetByKey('meta', 'changes').then(this._areChangesEmpty);
+    return this._storeGetByKey('meta', 'changes').then(changes => changes.length > 0);
   }
 
   clear() {
@@ -309,7 +354,7 @@ export class Store {
 
   getUnsyncedChanges() {
     return Promise.resolve(thenify(this._openStore('meta').get('changes')))
-      .then(changes => changes === undefined ? {} : changes);
+      .then(changes => changes === undefined ? [] : changes);
   }
 
   _storeGetByKey(store, key) {

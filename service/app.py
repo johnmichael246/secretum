@@ -95,7 +95,7 @@ class App(http.server.BaseHTTPRequestHandler):
 
         with psycopg2.connect("dbname=secretum user=postgres password='postgres'") as db:
             with db.cursor() as cur:
-                cur.execute('select id, vault, posted, device, delta from snapshots where vault = %s and id > %s', (vaultId, since))
+                cur.execute('select id, vault, posted, device, delta from snapshots where vault = %s and id > %s order by id asc', (vaultId, since))
                 snapshots = [{'id': row[0], 'vault': row[1], 'posted': row[2], 'device': row[3], 'delta': row[4]}
                              for row in cur.fetchall()]
 

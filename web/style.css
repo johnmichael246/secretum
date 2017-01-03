@@ -300,12 +300,12 @@ body {
 }
 
 .data-form .label {
-	width: 20%;
 	padding-top: 0.15em;
 	text-align: right;
 	margin-right: 0.5em;
 	vertical-align: middle;
 	display: inline-block;
+	min-width: 10ch;
 }
 
 .data-form input,

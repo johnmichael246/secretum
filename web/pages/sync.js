@@ -35,7 +35,7 @@ export class SyncPage extends React.Component {
   _load() {
     const work = [];
     work.push(this.context.syncer.getSyncStatus().then(status => {
-      this.setState({status: status, selectedVaultIndex: 0});
+      this.setState({status: status, selectedVaultId: (status.vault||{}).id||0});
     }));
     work.push(this.context.syncer.getUnsyncedChanges().then(changes => {
       this.setState({changes: changes});
@@ -89,17 +89,14 @@ export class SyncPage extends React.Component {
         );
       }
 
-
-      const changes = [];
-      // Injects action into change records (e.g. destructs one level of the tree)
-      if(this.state.changes.secrets !== undefined &&
-          Object.keys(this.state.changes.secrets).length > 0) {
-        let actions = {insert: 'New', update: 'Updated', delete: 'Removed'};
-        Object.keys(actions).forEach(action => {
-          changes.push.apply(changes,(this.state.changes.secrets[action]||[])
-            .map(change => Object.assign({action: actions[action]}, change)));
-        });
-      }
+      const changes = this.state.changes
+        .filter(c => c.table === 'secrets')
+        .map(c => ({
+          action: c.operator,
+          id: c.record.id,
+          resource: c.record.resource,
+          principal: c.record.principal
+        }));
 
       children.push(
         ep(DataTable, {
@@ -110,9 +107,9 @@ export class SyncPage extends React.Component {
         })
       );
 
-      if(Object.keys(this.state.changes).length === 0 && this.state.vaults !== undefined) {
+      if(this.state.changes.length === 0 && this.state.vaults !== undefined) {
         children.push(
-          epc('select', {key: 'vaults', value: this.state.selectedVaultIndex, onChange: this._onVaultSelect},
+          epc('select', {key: 'vaults', value: this.state.selectedVaultId, onChange: this._onVaultSelect},
             this.state.vaults.map(vault => epc('option', {key: vault.id, value: vault.id}, `${vault.name}`)))
         );
         children.push(
@@ -120,8 +117,8 @@ export class SyncPage extends React.Component {
         );
       }
 
-      if(this.state.status === null && Object.keys(this.state.changes).length > 0
-        || this.state.status !== null && Object.keys(this.state.changes).length === 0) {
+      if(this.state.status === null && this.state.changes.length > 0
+        || this.state.status !== null && this.state.changes.length === 0) {
         children.push(
           ep(Button, {key: '!clear', label: 'Clear', icon: 'warning', handler: this._onClear})
         );
@@ -147,21 +144,22 @@ export class SyncPage extends React.Component {
   }
 
   _onVaultSelect(event) {
-    return this.setState({selectedVaultIndex: event.target.value});
+    return this.setState({selectedVaultId: parseInt(event.target.value)});
   }
 
   _sync() {
     this.setState({syncing: true});
     this.context.syncer.sync()
-      .then(status => ({status: status, changes: this.context.syncer.getUnsyncedChanges()}))
-      .then(update => this.setState(Object.assign({syncing: false}, update)));
+      .then(status => this.setState({syncing: false, changes: [], status: status}));
   }
 
   _switch() {
     this.setState({syncing: true});
-    this.context.syncer.setup(this.state.vaults[this.state.selectedVaultIndex].id)
-      .then(status => ({status: status, changes: this.context.syncer.getUnsyncedChanges()}))
-      .then(update => this.setState(Object.assign({syncing: false}, update)));
+    this.context.syncer.setup(this.state.selectedVaultId)
+      .then(status => Promise.all([
+        Promise.resolve(status),
+        this.context.syncer.getUnsyncedChanges()
+      ])).then(([status, changes]) => this.setState({syncing: false, status: status, changes: changes}));
   }
 }
 

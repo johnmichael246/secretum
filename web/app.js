@@ -27,6 +27,67 @@ Object.values = function(obj) {
 	return Object.keys(obj).map(key => obj[key]);
 }
 
+Array.prototype.select = function(property) {
+	return Array.selector(property)(this);
+}
+
+Array.selector = function(property) {
+	return array => array.map(e => e[property]);
+}
+
+Array.prototype.flatten = function(levels=1) {
+	if(levels===0) return this;
+
+	const ret = [];
+
+	this.forEach(a => {
+		if(!Array.isArray(a)) throw new Error('The array is too shallow to flatten!');
+		Array.prototype.push.apply(ret,a.flatten(levels-1));
+	});
+
+	return ret;
+}
+
+Array.prototype.aggregate = function(aggregator) {
+	return Array.aggregator(aggregator)(this);
+}
+
+Array.aggregator = function(aggregator) {
+	return array => aggregator.apply(null, array);
+}
+
+Array.prototype.groupBy = function(property) {
+	const ret = {};
+	this.forEach(val => {
+		if(!val.hasOwnProperty(property)) throw new Error('Grouping by property with missing values for some elements!');
+
+		const key = val[property];
+		if(typeof key !== 'string') throw new Error('Grouping by property with non-string values in some elements!');
+
+		if(ret[key] === undefined) {
+			ret[key] = [val];
+		} else {
+			ret[key].push(val);
+		}
+	});
+
+	return ret;
+}
+
+Array.prototype.remove = function(predicate) {
+	for(const idx in this) {
+		if(predicate(this[idx])) {
+			delete this[idx];
+		}
+	}
+}
+
+Object.defineProperty(Object.prototype, 'mapValues', {value: function(mapper) {
+	const ret = Object(this);
+	Object.keys(ret).forEach(key => ret[key] = mapper(ret[key]));
+	return ret;
+}});
+
 class App extends React.Component {
 	constructor(props) {
 		super(props);
