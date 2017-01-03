@@ -77,10 +77,14 @@ body {
 	flex-grow: 1;
 }
 
+.home > *:not(.secrets) {
+	flex-shrink: 0;
+}
 .app .footer {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
+	flex-shrink: 0;
 }
 
 .app .footer .button {
@@ -179,6 +183,10 @@ body {
 .table > .body > .row,
 .table > .header {
 	display: flex;
+}
+
+.table > .header {
+		flex-shrink: 0;
 }
 
 .table .cell {

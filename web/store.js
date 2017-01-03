@@ -34,9 +34,9 @@ export class Store {
 
       if(query.keyword !== undefined) {
         query.keyword = query.keyword.toLowerCase();
-        if(secret.resource.search(query.keyword)==-1
-          && secret.principal.search(query.keyword)==-1
-          && secret.note.search(query.keyword)==-1) {
+        if(secret.resource.toLowerCase().search(query.keyword)==-1
+          && secret.principal.toLowerCase().search(query.keyword)==-1
+          && secret.note.toLowerCase().search(query.keyword)==-1) {
             return false;
           }
       }
