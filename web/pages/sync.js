@@ -46,7 +46,7 @@ export class SyncPage extends React.Component {
     });
 
     this.context.syncer.findRemoteVaults().then(vaults => {
-      this.setState({vaults: vaults});
+      this.setState({vaults: vaults, selectedVaultId: (vaults[0]||{}).id});
     });
 
     return {loading: true};
