@@ -19,6 +19,10 @@ import psycopg2
 import json
 import datetime
 
+# Configuration
+database_string="host=localhost port=5432 dbname=secretum user=postgres password='postgres'"
+service_port=8001
+
 logging.basicConfig(level=logging.INFO)
 
 class DatetimeEncoder(json.JSONEncoder):
@@ -68,7 +72,7 @@ class App(http.server.BaseHTTPRequestHandler):
 
 
     def meta(self, args):
-        with psycopg2.connect("dbname=secretum2 user=postgres password='postgres'") as db:
+        with psycopg2.connect(database_string) as db:
             with db.cursor() as cur:
                 cur.execute('select id, name from vaults')
                 data = cur.fetchall()
@@ -93,7 +97,7 @@ class App(http.server.BaseHTTPRequestHandler):
         vaultId = args['vaultId'][0]
         since = args['sinceCommitId'][0] if 'sinceCommitId' in args else 0
 
-        with psycopg2.connect("dbname=secretum2 user=postgres password='postgres'") as db:
+        with psycopg2.connect(database_string) as db:
             with db.cursor() as cur:
                 cur.execute('select id, vault, posted, device, delta from snapshots where vault = %s and id > %s order by id asc', (vaultId, since))
                 snapshots = [{'id': row[0], 'vault': row[1], 'posted': row[2], 'device': row[3], 'delta': row[4]}
@@ -120,7 +124,7 @@ class App(http.server.BaseHTTPRequestHandler):
 
         vaultId = args['vaultId'][0]
 
-        with psycopg2.connect("dbname=secretum2 user=postgres password='postgres'") as db:
+        with psycopg2.connect(database_string) as db:
             with db.cursor() as cur:
                 # Testing if the trunk exists
                 cur.execute('select %s in (select id from vaults)', (vaultId,))
@@ -148,5 +152,7 @@ class App(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(data)
 
-server = http.server.HTTPServer(('',8001), App)
+server = http.server.HTTPServer(('',service_port), App)
 server.serve_forever()
+
+logging.info("The service has started!")
