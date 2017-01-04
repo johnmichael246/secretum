@@ -55,17 +55,17 @@ insert into snapshots (device, vault, parent, delta) values ('fake', currval('va
 insert into snapshots (device, vault, parent, delta) values ('fake', currval('vault_id_seq'), currval('snapshot_id_seq'), '
   [
   {"operator":"insert","table":"secrets",
-    "record":{"resource":"https://icloud.com","groupId":4,"principal":"myfamily","password":"password40","note":"","id":220}},
+    "record":{"resource":"https://icloud.com","groupId":4,"principal":"myfamily","password":"password40","note":"","id":6}},
   {"operator":"update","table":"secrets",
-    "record":{"resource":"https://icloud.com","groupId":4,"principal":"myfamily","password":"password400","note":"","id":220}},
+    "record":{"resource":"https://icloud.com","groupId":4,"principal":"myfamily","password":"password400","note":"","id":6}},
   {"operator":"update","table":"secrets",
-    "record":{"resource":"https://icloud.com","groupId":4,"principal":"thefamily","password":"password400","note":"","id":220}},
+    "record":{"resource":"https://icloud.com","groupId":4,"principal":"thefamily","password":"password400","note":"","id":6}},
   {"operator":"update","table":"secrets",
-    "record":{"resource":"https://icloud.com","groupId":4,"principal":"thefamily@gmail.com","password":"password400","note":"","id":220}},
+    "record":{"resource":"https://icloud.com","groupId":4,"principal":"thefamily@gmail.com","password":"password400","note":"","id":6}},
   {"operator":"insert","table":"secrets",
-    "record":{"resource":"https://gmail.com","groupId":1,"principal":"name@gmail.com","password":"notsuperhardpassword","note":"TODO: Replace the password with a super hard one.","id":221}},
+    "record":{"resource":"https://gmail.com","groupId":1,"principal":"name@gmail.com","password":"notsuperhardpassword","note":"TODO: Replace the password with a super hard one.","id":7}},
   {"operator":"update","table":"secrets",
-    "record":{"resource":"https://twitter.com","groupId":1,"principal":"username2","password":"password3","note":"Security Question: What''s your dog''s name?\nAnswer: Bolty","id":216}},
+    "record":{"resource":"https://twitter.com","groupId":1,"principal":"username2","password":"password3","note":"Security Question: What''s your dog''s name?\nAnswer: Bolty","id":2}},
   {"operator":"insert","table":"secrets",
-    "record":{"resource":"https://anotherbank.com","groupId":3,"principal":"account5910","password":"easypassword","note":"VISA PIN: 1591","id":222}}]
+    "record":{"resource":"https://anotherbank.com","groupId":3,"principal":"account5910","password":"easypassword","note":"VISA PIN: 1591","id":8}}]
 ');
