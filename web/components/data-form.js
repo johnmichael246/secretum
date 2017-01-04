@@ -75,7 +75,12 @@ export class DataForm extends React.Component {
 	}
 
 	_buildTextField(field) {
-		const props = { key: "input", type: "text", name: field.name, onChange: this._onFieldChange };
+		const props = {
+			key: "input",
+			type: field.readOnly && field.type === 'password' ? 'password' : 'text',
+			name: field.name,
+			onChange: this._onFieldChange
+		};
 
 		if(this.state.loading) {
 			// Disabling input component if the data is not yet ready
@@ -110,7 +115,7 @@ export class DataForm extends React.Component {
 	}
 
 	_buildTextAreaField(field) {
-		const props = { key: "input", name: field.name, onChange: this._onFieldChange, rows: 10 };
+		const props = { key: "input", name: field.name, onChange: this._onFieldChange, rows: 5 };
 
 		if(this.state.loading) {
 			props.value = "...";
@@ -150,7 +155,7 @@ export class DataForm extends React.Component {
 
 		for(let field of this.state.fields) {
 			var row;
-			if(field.type === "text") {
+			if(field.type === "text" || field.type === 'password') {
 				row = this._buildTextField(field);
 			} else if(field.type === "select") {
 				row = this._buildSelectField(field);
