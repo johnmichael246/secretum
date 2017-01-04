@@ -52,7 +52,6 @@ exports.build = function() {
 	mkdirIfNeeded("output/webapp");
 	cp('web/index.html','output/webapp/index.html');
 	cp('web/app.cache','output/webapp/app.cache');
-	cpIfNeeded('web/favicon.png','output/webapp/favicon.png');
 	cpIfNeeded('web/icon-120x120.png','output/webapp/icon-120x120.png');
 	cpIfNeeded('web/manifest.json','output/webapp/manifest.json');
 
