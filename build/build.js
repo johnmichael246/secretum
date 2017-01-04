@@ -64,9 +64,9 @@ exports.build = function() {
 	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'output/webapp/css/font-awesome.min.css');
 
 	mkdirIfNeeded("output/webapp/fonts");
+	cpIfNeeded('web/fonts/Orbitron-Regular.ttf', 'output/webapp/fonts/Orbitron-Regular.ttf');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'output/webapp/fonts/fontawesome-webfont.woff');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'output/webapp/fonts/fontawesome-webfont.woff2');
-	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.ttf', 'output/webapp/fonts/fontawesome-webfont.ttf');
 
 	cpIfNeeded('build/simple.py', 'output/webapp/simple.py');
 
