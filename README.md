@@ -27,19 +27,17 @@ Secretum is a password manager with the following feature targets:
 
 ### Setup
 
-1. Initialize schema with `database/schema.sql`
-2. Upload dataset for testing from `database/fakedata.sql`
-3. Install psycopg2 with `pip install psycopg2`
-
-### Build
-
-1. Run `npm install`
+1. Initialize schema with `./database/schema.sql`.
+2. Upload dataset for testing from `./database/fakedata.sql`.
+3. Install psycopg2 with `pip install psycopg2`.
+4. Modify the first lines of `./service/app.py` with PG database parameters and desired API port.
+5. Modify `./web/app.js` (look for construction of a Store object) to match hostname and port of the API service.
+6. Run `npm install`.
 
 ### Deployment
 
-1. Copy `env.json` to `private/env.json`
-2. Modify `private/env.json` according to your environment
-2. Run `node build/build.js`
+1. Run `python service/app.py`.
+2. Run `node build/build.js`. This will build the project into `./output/webapp` and launch `./build/simple.py` in the output directory. You can now open `http://localhost:8000` to launch the front-end app.
 
 ## What's the story behind Secretum?
 Some years ago I got tired with remembering complex password to keep my accounts secure. Obviously, I did not trust any of the proprietary password managers, while open source projects seemed a bit outdated with respect to their technology stacks. This repository
