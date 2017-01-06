@@ -145,7 +145,9 @@ export class DataForm extends React.Component {
 					key: a.label,
 					icon: a.icon,
 					label: a.label,
-					handler: a.handler
+					handler: () => {
+						this.setState({data: a.handler(Object(this.state.data))});
+					}
 				}))
 			);
 			const label = ep('div', {key: 'label', className: 'label'});

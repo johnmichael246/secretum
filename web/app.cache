@@ -7,9 +7,8 @@ js/react-dom.js
 js/app.js
 css/style.css
 css/font-awesome.min.css
-fonts/fontawesome-webfont.ttf?v=4.7.0
+fonts/Orbitron-Regular.ttf
 fonts/fontawesome-webfont.woff?v=4.7.0
 fonts/fontawesome-webfont.woff2?v=4.7.0
 NETWORK:
 *
-#aws

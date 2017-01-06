@@ -28,6 +28,7 @@ export class SecretEditorDialog extends React.Component {
       epc('div', {key: 'content', className: 'dialog-content'},
         ep(SecretForm, {
           key: 'form',
+          generator: true,
           secretId: this.props.secretId,
           onSubmit: this.props.onSubmit,
           onCancel: this.props.onCancel,

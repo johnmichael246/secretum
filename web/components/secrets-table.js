@@ -21,9 +21,25 @@ import { SecretForm } from './secret-form.js';
 function SecretToolbox(props) {
   const handlers = props.actionHandlers;
   const secret = props.secret;
-  const tools = [epc("a", {key: "copy", onClick: () => handlers.onCopy(secret)}, ep("i", {className: "fa fa-flash"})),
-  epc("a", {key: "edit", onClick: () => handlers.onEdit(secret)}, ep("i", {className: "fa fa-edit"})),
-  epc("a", {key: "remove", onClick: () => handlers.onRemove(secret)}, ep("i", {className: "fa fa-remove"}))]
+  const tools = [
+    epc("a", {
+      key: "copy",
+      onClick: (e) => {
+        e.stopPropagation();
+        handlers.onCopy(secret)
+      }}, ep("i", {className: "fa fa-flash"})),
+    epc("a", {
+      key: "edit",
+      onClick: (e) => {
+        e.stopPropagation();
+        handlers.onEdit(secret)
+      }}, ep("i", {className: "fa fa-edit"})),
+    epc("a", {
+      key: "remove",
+      onClick: (e) => {
+        e.stopPropagation();
+        handlers.onRemove(secret)
+      }}, ep("i", {className: "fa fa-remove"}))]
   return ec("div", tools);
 }
 

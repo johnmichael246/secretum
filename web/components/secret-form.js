@@ -22,17 +22,20 @@ export class SecretForm extends React.Component {
 		super(props);
 	}
 
+	_generatePassword(secret) {
+		const dict = 'abcdefghijklmopqrstuvwxyzABCDEFGIJKLMOPQRSTUVWXYZ0123456789!@#$%^&*()+*-~';
+		secret.password = Array(20).fill(0)
+			.map(Math.random)
+			.map(n => Math.floor(n/(1/dict.length)))
+			.map(n => dict[n])
+			.join('');
+		return secret;
+	}
+
 	render() {
 		const groups = this.context.store.findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const readOnly = this.props.readOnly || false;
-		const secret = this.props.secretId === null ? {
-			id: '',
-			resource: '',
-			groupId: 1,
-			principal: '',
-			password: '',
-			note: ''
-		} : this.context.store.getSecret(this.props.secretId);
+
 
 		const fields = [
 			{name: "id", type: "text", label: "ID", readOnly: true},
@@ -43,6 +46,21 @@ export class SecretForm extends React.Component {
 			{name: "note", type: "textarea", label: "Note", readOnly: readOnly}
 		].filter(field => this.props.fields === undefined || this.props.fields.includes(field.name));
 
+		const actions = this.props.topActions||[];
+
+		if(this.props.generator||false) {
+			actions.push({label: 'Generate', icon: 'magic', handler: this._generatePassword});
+		}
+
+		const secret = this.props.secretId === null ? {
+			id: '',
+			resource: '',
+			groupId: 1,
+			principal: '',
+			password: '',
+			note: ''
+		} : this.context.store.getSecret(this.props.secretId);
+
 		const form = {
 			className: this.props.className||'' + ' secret-form',
 			title: this.props.title,
@@ -50,7 +68,7 @@ export class SecretForm extends React.Component {
 			data: secret,
 			onSubmit: this.props.onSubmit,
 			onCancel: this.props.onCancel,
-			topActions: this.props.topActions
+			topActions: actions
 		};
 		return ep(DataForm, form);
 	}
