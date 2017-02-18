@@ -285,7 +285,7 @@ export class Store {
           } else if(command.operator === 'delete') {
             // Removing unsynced changes (updates and deletes) to remotely deleted records
             meta.changes.remove(c => c.record.id === command.record.id);
-            return thenify(stores[command.table].remove(command.record.id));
+            return thenify(stores[command.table].delete(command.record.id));
           } else {
             throw new Error(`An unknown operator in the remote delta's command: ${command.operator}`);
           }
