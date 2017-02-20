@@ -1,5 +1,6 @@
 # SECRETUM
 ![Logo](https://i.imgur.com/kHfcW4r.png)
+[![Build Status](https://travis-ci.org/equalsdanny/secretum.svg?branch=master)](https://travis-ci.org/equalsdanny/secretum)
 
 ## The Goal
 Secretum is a password manager with the following feature targets:

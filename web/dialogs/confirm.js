@@ -14,7 +14,7 @@
 
 /* global React */
 
-import { ec, ep, epc } from '../ui.js';
+import { ep, epc } from '../ui.js';
 import { Button } from '../components/button.js';
 
 export class ConfirmDialog extends React.Component {
