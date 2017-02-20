@@ -13,7 +13,7 @@ Secretum is a password manager with the following feature targets:
 ![Architecture](https://i.imgur.com/ZE47cVq.png)
 
 ## Technology Stack
-* Back-end: PostgreSQL, Python
+* Back-end: Python, Django
 * Front-end: ECMAScript 2016, React, IndexedDB, AppCache
 
 ## Screenshot (IPhone 6 / Safari 9)
@@ -23,22 +23,21 @@ Secretum is a password manager with the following feature targets:
 ### Prerequisites
 
 1. Python v3+
-2. PostgreSQL v9+
+2. Django v1.10+
 3. NodeJS v6+
 
-### Setup
+### Setup for development
 
-1. Initialize schema with `./database/schema.sql`.
-2. Upload dataset for testing from `./database/fakedata.sql`.
-3. Install psycopg2 with `pip install psycopg2`.
-4. Modify the first lines of `./service/app.py` with PG database parameters and desired API port.
-5. Modify `./web/app.js` (look for construction of a Store object) to match hostname and port of the API service.
-6. Run `npm install`.
+1. Initialize an SQLite database: `python manage.py migrate`.
+2. Optionally, load a dataset for testing: `python manage.py loaddata fakedata`.
+3. Install NodeJS dependencies: `npm install`.
+3. Build the webapp with `npm run build-webapp` or `npm run build-webapp-watch`.
+4. Run the Django server: `python manage.py runserver`.
+5. Goto `http://localhost:8000/app/index.html`
 
-### Deployment
-
-1. Run `python service/app.py`.
-2. Run `node build/build.js`. This will build the project into `./output/webapp` and launch `./build/simple.py` in the output directory. You can now open `http://localhost:8000` to launch the front-end app.
+# Setup for deployment?
+You have to write your own Django project settings and prepare an indepedent database.
+Replace `devsite.settings` with your own settings module in `manage.py`, when ready.
 
 ## What's the story behind Secretum?
 Some years ago I got tired with remembering complex password to keep my accounts secure. Obviously, I did not trust any of the proprietary password managers, while open source projects seemed a bit outdated with respect to their technology stacks. This repository
