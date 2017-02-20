@@ -35,7 +35,11 @@ export class SyncPage extends React.Component {
   _load() {
     const work = [];
     work.push(this.context.syncer.getSyncStatus().then(status => {
-      this.setState({status: status, selectedVaultId: (status.vault||{}).id||0});
+      const update = {status: status};
+      if(status.vault !== null) {
+        update.vaultId = status.vault.id;
+      }
+      this.setState(update);
     }));
     work.push(this.context.syncer.getUnsyncedChanges().then(changes => {
       this.setState({changes: changes});
