@@ -1,5 +1,6 @@
-*.sublime-project
 node_modules
-output
+tmp
 .idea
-private
+__pycache__
+db.sqlite3
+.vscode

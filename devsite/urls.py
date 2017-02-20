@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import http.server
-import os
+from django.conf.urls import include, url
+from django.contrib import admin
 
-os.chdir('./output/webapp')
-server = http.server.HTTPServer(('',8000),http.server.SimpleHTTPRequestHandler)
-server.serve_forever()
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^service/', include('service.urls'))
+]

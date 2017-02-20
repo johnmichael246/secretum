@@ -22,7 +22,6 @@ import { Router } from './router.js';
 import { Store } from './store.js';
 
 import { Button } from './components/button.js';
-import * as settings from './settings.js';
 
 Object.values = function(obj) {
 	return Object.keys(obj).map(key => obj[key]);
@@ -95,7 +94,7 @@ class App extends React.Component {
 		this.state = {loading: true, route: {page: 'home'}};
 
 		this._initDatabase().then(db => {
-			this.store = new Store({endpoint: settings.api_url, db: db});
+			this.store = new Store({endpoint: '/service', db: db});
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
