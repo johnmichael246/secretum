@@ -19,7 +19,7 @@ from django.http import HttpResponseBadRequest
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
-from .models import Trunk, Commit
+from service.models import Trunk, Commit
 
 def hello(request):
     return JsonResponse({'status': 'ok'})
@@ -33,11 +33,12 @@ def pull(request):
         trunk = Trunk.objects.get(id=int(request.GET['vaultId']))
     except (KeyError, ValueError, ObjectDoesNotExist) as e:
         raise HttpResponseBadRequest('Invalid (or no) vault ID requested')
-
+    
+    commits = Commit.objects.filter(trunk=trunk)
     if 'sinceCommitId' in request.GET:
-        commits = Commit.objects.filter(trunk=trunk,id__gt=request.GET['sinceCommitId'])
-    else:
-        commits = Commit.objects.filter(trunk=trunk)
+        commits = commits.filter(id__gt=request.GET['sinceCommitId'])
+
+    commits = commits.order_by('id')
 
     return JsonResponse({
         'vault': {'id': trunk.id, 'name': trunk.name},

@@ -6,7 +6,7 @@
 
     <object pk="1" model="service.Commit">
         <field to="service.Trunk" name="trunk" rel="OneToMany">1</field>
-        <field type="CharField" name="device">'faker'</field>
+        <field type="CharField" name="device">faker</field>
         <field type="CharField" name="delta">
               [
                   {"table": "groups",
@@ -23,7 +23,7 @@
     <object pk="2" model="service.Commit">
         <field to="service.Trunk" name="trunk">1</field>
         <field to="service.Commit" name="parent">1</field>
-        <field type="CharField" name="device">'faker'</field>
+        <field type="CharField" name="device">faker</field>
         <field type="CharField" name="delta">
           [
           {"operator":"insert", "table":"secrets",
@@ -48,7 +48,7 @@
     <object pk="3" model="service.Commit">
         <field to="service.Trunk" name="trunk">1</field>
         <field to="service.Commit" name="parent">2</field>
-        <field type="CharField" name="device">'faker'</field>
+        <field type="CharField" name="device">faker</field>
         <field type="CharField" name="delta">
             [
           {"operator":"insert","table":"secrets",
