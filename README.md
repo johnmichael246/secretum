@@ -10,7 +10,7 @@ Secretum is a password manager with the following feature targets:
 * easily extendable and customizable through a robust API
 
 ## Architecture
-![Architecture](https://i.imgur.com/ZE47cVq.png)
+![Architecture](https://i.imgur.com/Wkr92XP.png?1)
 
 ## Technology Stack
 * Back-end: Python, Django
