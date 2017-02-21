@@ -50,17 +50,17 @@ function build() {
 	console.log("Building your app, master!")
 
 	mkdirIfNeeded('tmp');
-	mkdirIfNeeded("tmp/webapp");
-	mkdirIfNeeded("tmp/webapp/js");
-	cpIfNeeded('node_modules/react/dist/react.js','tmp/webapp/js/react.js');
-	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/webapp/js/react-dom.js');
+	mkdirIfNeeded("tmp/static");
+	mkdirIfNeeded("tmp/static/webapp/js");
+	cpIfNeeded('node_modules/react/dist/react.js','tmp/static/webapp/js/react.js');
+	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/static/webapp/js/react-dom.js');
 
-	mkdirIfNeeded("tmp/webapp/css");
-	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/webapp/css/font-awesome.min.css');
+	mkdirIfNeeded("tmp/static/webapp/css");
+	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/static/css/font-awesome.min.css');
 
-	mkdirIfNeeded("tmp/webapp/fonts");
-	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/webapp/fonts/fontawesome-webfont.woff');
-	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/webapp/fonts/fontawesome-webfont.woff2');
+	mkdirIfNeeded("tmp/static/fonts");
+	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/static/webapp/fonts/fontawesome-webfont.woff');
+	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/static/webapp/fonts/fontawesome-webfont.woff2');
 
 	rollup.rollup({
 	  // The bundle's starting point. This file will be
@@ -82,7 +82,7 @@ function build() {
 	  // Cache our bundle for later use (optional)
 	  cache = bundle;
 
-	  fs.writeFileSync('tmp/webapp/js/app.js', result.code );
+	  fs.writeFileSync('tmp/static/webapp/js/app.js', result.code );
 	});
 
 }
