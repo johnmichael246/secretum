@@ -46,10 +46,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    #'django.contrib.messages.middleware.MessageMiddleware',
     #'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'devsite.middleware.DisableCorsWhenDebugging',
-    'devsite.middleware.RequireBasicAuthentication'
+    #'devsite.middleware.RequireBasicAuthentication'
 ]
 
 ROOT_URLCONF = 'devsite.urls'

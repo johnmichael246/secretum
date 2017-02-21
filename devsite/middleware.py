@@ -19,19 +19,6 @@ from django.contrib.auth import authenticate, login
 from base64 import b64decode
 import logging
 
-logger = logging.getLogger('django')
-
-class DisableCorsWhenDebugging():
-    def __init__(self, get_response):
-        if not settings.DEBUG:
-            raise MiddlewareNotUsed()
-        self.get_response = get_response
-
-    def __call__(self, request):
-        response = self.get_response(request)
-        response['Access-Control-Allow-Origin'] = '*'
-        return response
-
 class RequireBasicAuthentication():
     def __init__(self, get_response):
         self.get_response = get_response
@@ -41,7 +28,6 @@ class RequireBasicAuthentication():
             if 'HTTP_AUTHORIZATION' in request.META:
                 attempt = request.META['HTTP_AUTHORIZATION']
                 username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
-                logger.error(username+password)
                 user = authenticate(username=username,password=password)
                 if user is not None:                    
                     login(request, user)
