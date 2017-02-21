@@ -14,7 +14,12 @@
 
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login
+from base64 import b64decode
+import logging
 
+logger = logging.getLogger('django')
 
 class DisableCorsWhenDebugging():
     def __init__(self, get_response):
@@ -26,3 +31,25 @@ class DisableCorsWhenDebugging():
         response = self.get_response(request)
         response['Access-Control-Allow-Origin'] = '*'
         return response
+
+class RequireBasicAuthentication():
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if not request.user.is_authenticated:
+            if 'HTTP_AUTHORIZATION' in request.META:
+                attempt = request.META['HTTP_AUTHORIZATION']
+                username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
+                logger.error(username+password)
+                user = authenticate(username=username,password=password)
+                if user is not None:                    
+                    login(request, user)
+                    return self.get_response(request)
+
+            resp = HttpResponse(status=401)
+            resp['WWW-Authenticate'] = 'Basic realm="Secretum"'
+            return resp
+        else:
+            return self.get_response(request)
+            

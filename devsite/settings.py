@@ -48,7 +48,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     #'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'devsite.middleware.DisableCorsWhenDebugging'
+    'devsite.middleware.DisableCorsWhenDebugging',
+    'devsite.middleware.RequireBasicAuthentication'
 ]
 
 ROOT_URLCONF = 'devsite.urls'
@@ -68,6 +69,28 @@ TEMPLATES = [
         },
     },
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+    },
+}
 
 WSGI_APPLICATION = 'devsite.wsgi.application'
 
