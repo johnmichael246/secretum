@@ -51,6 +51,7 @@ function build() {
 
 	mkdirIfNeeded('tmp');
 	mkdirIfNeeded("tmp/static");
+	mkdirIfNeeded("tmp/static/webapp");
 	mkdirIfNeeded("tmp/static/webapp/js");
 	cpIfNeeded('node_modules/react/dist/react.js','tmp/static/webapp/js/react.js');
 	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/static/webapp/js/react-dom.js');
@@ -58,7 +59,7 @@ function build() {
 	mkdirIfNeeded("tmp/static/webapp/css");
 	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/static/css/font-awesome.min.css');
 
-	mkdirIfNeeded("tmp/static/fonts");
+	mkdirIfNeeded("tmp/static/webapp/fonts");
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/static/webapp/fonts/fontawesome-webfont.woff');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/static/webapp/fonts/fontawesome-webfont.woff2');
 
