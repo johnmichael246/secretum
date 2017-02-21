@@ -37,10 +37,10 @@ class RequireBasicAuthentication():
         if 'HTTP_AUTHORIZATION' in request.META:
             attempt = request.META['HTTP_AUTHORIZATION']
             username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
-            user = authenticate(username=username,password=password)
-            if user is not None:                    
+            user = authenticate(username=username, password=password)
+            if user is not None:
                 login(request, user)
-                return self.get_response(request)
+                return None
 
         resp = HttpResponse(status=401)
         resp['WWW-Authenticate'] = 'Basic realm="Secretum"'
