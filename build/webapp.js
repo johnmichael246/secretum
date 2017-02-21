@@ -57,7 +57,7 @@ function build() {
 	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/static/webapp/js/react-dom.js');
 
 	mkdirIfNeeded("tmp/static/webapp/css");
-	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/static/css/font-awesome.min.css');
+	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/static/webapp/css/font-awesome.min.css');
 
 	mkdirIfNeeded("tmp/static/webapp/fonts");
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/static/webapp/fonts/fontawesome-webfont.woff');
