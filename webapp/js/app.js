@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React ReactDOM */
+/* global React ReactDOM settings */
 
 import { HomePage } from './pages/home.js';
 import { SyncPage} from './pages/sync.js';
@@ -141,7 +141,10 @@ class App extends React.Component {
 		];
 
 		const children = [
-			epc("div", {key: "header", className: "header"}, "Secretum"),
+			epc("div", {key: "header", className: "header"}, [
+				epc("div", {key: "title", className: "title"}, "Secretum"),
+				epc("div", {key: "version", className: "version"}, settings.version)
+			]),
 			ep(Router, {key: "router", className: "page", rules: rules, route: this.state.route, id: "router-main"}),
 			epc("div", {key: "footer", className: "footer"}, tabs)
 		];
@@ -156,7 +159,7 @@ class App extends React.Component {
 	_initDatabase() {
 		return new Promise((resolve, reject) => {
 			var db;
-			var openRequest = window.indexedDB.open('secretum', 1);
+			var openRequest = window.indexedDB.open(settings.idb_name, 1);
 			openRequest.onsuccess = () => {
 				db = openRequest.result;
 				db.onerror = console.error;

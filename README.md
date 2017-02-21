@@ -20,22 +20,25 @@ Secretum is a password manager with the following feature targets:
 ![Screenshot](https://i.imgur.com/rdzx735.png)
 
 ## Building and Deployment
-### Prerequisites
-
+### System prerequisites
 1. Python v3+
-2. Django v1.10+
-3. NodeJS v6+
+2. NodeJS v6+
 
-### Setup for development
+### Installing dependencies
+1. `pip install django`
+2. `npm install`
 
-1. Initialize an SQLite database: `python manage.py migrate`.
-2. Optionally, load a dataset for testing: `python manage.py loaddata fakedata`.
-3. Install NodeJS dependencies: `npm install`.
-3. Build the webapp with `npm run build-webapp` or `npm run build-webapp-watch`.
-4. Run the Django server: `python manage.py runserver`.
-5. Goto `http://localhost:8000/app/index.html`
+### Preparing a database
+1. Optionally, install a DB driver (e.g. `pip install psycopg2`), or stay with built-in SQLite.
+2. Initialize a database: `python manage.py migrate`.
+3. Optionally, load a dataset for testing: `python manage.py loaddata fakedata`.
 
-# Setup for deployment?
+### Building for development
+1. Build the webapp and start a watchdog with `npm run build-watch`.
+2. Run the Django server: `python manage.py runserver`.
+3. Goto `http://localhost:8000`.
+
+### Production deployment
 You have to write your own Django project settings and prepare an indepedent database.
 Replace `devsite.settings` with your own settings module in `manage.py`, when ready.
 

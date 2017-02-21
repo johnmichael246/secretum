@@ -1,10 +1,10 @@
 {
   "name": "secretum",
-  "version": "0.1.0",
+  "version": "0.1.0-dev",
   "scripts": {
     "build": "node ./build/webapp.js",
-    "build-watch": "node ./node_modules/nodemon/bin/nodemon.js --watch webapp ./build/webapp.js",
-    "test": "node ./node_modules/eslint/bin/eslint.js ./webapp/"
+    "build-watch": "node ./node_modules/nodemon/bin/nodemon.js --watch webapp/js ./build/webapp.js",
+    "test": "node ./node_modules/eslint/bin/eslint.js ./webapp/js"
   },
   "dependencies": {
     "font-awesome": "^4.7.0",

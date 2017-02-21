@@ -1,15 +1,27 @@
 import os
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'this-is-a-public-secret'
+def get_contents(*args):
+    with open(os.path.join(BASE_DIR, *args), 'r') as file:
+        return '\n'.join(file.readlines())
+
+# Core settings
 DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = 'this-is-a-public-secret'
+ROOT_URLCONF = 'devsite.urls'
 
+# Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = ['./tmp']
+STATICFILES_DIRS = ['./tmp/static']
 
+# Secretum-specific settings
+IDB_NAME = 'secretum_dev'
+VERSION = json.loads(get_contents('package.json'))['version']
+
+# Database backend used by the service
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -39,8 +51,6 @@ MIDDLEWARE = [
     #'django.middleware.clickjacking.XFrameOptionsMiddleware',
     #'devsite.middleware.RequireBasicAuthentication'
 ]
-
-ROOT_URLCONF = 'devsite.urls'
 
 TEMPLATES = [
     {

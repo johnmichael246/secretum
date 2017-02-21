@@ -59,11 +59,22 @@ body {
 	color: white;
 	text-align: center;
 	text-transform: uppercase;
-	font-family: Orbitron, sans-serif;
-	font-size: 2em;
 	text-shadow: 0px 0px 10px rgba(255,255,255,0.5);
 	box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+	display: flex;
+}
+
+.app > .header > .title {
+	font-family: Orbitron, sans-serif;
+	font-size: 2em;
 	padding-top: 0.2em;
+	flex-grow: 1;
+}
+
+.app > .header > .version {
+	font-family: sans-serif;
+	font-size: 0.8em;
+	align-self: center;
 }
 
 .app > .page {

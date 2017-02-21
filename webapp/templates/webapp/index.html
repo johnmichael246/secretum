@@ -20,16 +20,27 @@
 <html>
 <head>
 	<title>Secretum</title>
+
 	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	
 	<link rel="manifest" href="{% static 'webapp/manifest.json' %}">
 	<link rel="apple-touch-icon" sizes="120x120" href="{% static 'webapp/icon-120x120.png' %}" />
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	
 	<link rel="stylesheet" href="{% static 'webapp/css/style.css' %}">
 	<link rel="stylesheet" href="{% static 'webapp/css/font-awesome.min.css' %}">
+	
 	<script src="{% static 'webapp/js/react.js' %}"></script>
 	<script src="{% static 'webapp/js/react-dom.js' %}"></script>
 	<script src="{% static 'webapp/js/app.js' %}"></script>
+
+	<script>
+		var settings = {
+			idb_name: '{{ idb_name }}',
+			version: '{{ version }}'
+		};
+	</script>
 </head>
 
 <body>
