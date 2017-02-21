@@ -18,24 +18,31 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from base64 import b64decode
 import logging
+import service.views
 
 class RequireBasicAuthentication():
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user.is_authenticated:
-            if 'HTTP_AUTHORIZATION' in request.META:
-                attempt = request.META['HTTP_AUTHORIZATION']
-                username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
-                user = authenticate(username=username,password=password)
-                if user is not None:                    
-                    login(request, user)
-                    return self.get_response(request)
+        return self.get_response(request)
 
-            resp = HttpResponse(status=401)
-            resp['WWW-Authenticate'] = 'Basic realm="Secretum"'
-            return resp
-        else:
-            return self.get_response(request)
-            
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if view_func.__module__ is not service.views.__name__:
+            return None
+
+        if request.user.is_authenticated:
+            return None
+
+        if 'HTTP_AUTHORIZATION' in request.META:
+            attempt = request.META['HTTP_AUTHORIZATION']
+            username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
+            user = authenticate(username=username,password=password)
+            if user is not None:                    
+                login(request, user)
+                return self.get_response(request)
+
+        resp = HttpResponse(status=401)
+        resp['WWW-Authenticate'] = 'Basic realm="Secretum"'
+        return resp
+        
