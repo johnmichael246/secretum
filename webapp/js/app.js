@@ -94,7 +94,7 @@ class App extends React.Component {
 		this.state = {loading: true, route: {page: 'home'}};
 
 		this._initDatabase().then(db => {
-			this.store = new Store({endpoint: '/service', db: db});
+			this.store = new Store({endpoint: './service', db: db});
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
