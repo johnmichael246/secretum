@@ -14,9 +14,9 @@
 
 const console = require("console");
 const fs = require("fs");
-const nodemon = require('nodemon');
-const rollup = require('rollup');
-const process = require('process');
+const nodemon = require("nodemon");
+const rollup = require("rollup");
+const process = require("process");
 
 function cp(src, dst) {
 	console.log("Copying " + src + " to " + dst);
@@ -51,21 +51,14 @@ function build() {
 
 	mkdirIfNeeded('tmp');
 	mkdirIfNeeded("tmp/webapp");
-	cp('webapp/index.html','tmp/webapp/index.html');
-	cp('webapp/app.cache','tmp/webapp/app.cache');
-	cpIfNeeded('webapp/icon-120x120.png','tmp/webapp/icon-120x120.png');
-	cpIfNeeded('webapp/manifest.json','tmp/webapp/manifest.json');
-
 	mkdirIfNeeded("tmp/webapp/js");
 	cpIfNeeded('node_modules/react/dist/react.js','tmp/webapp/js/react.js');
 	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/webapp/js/react-dom.js');
 
 	mkdirIfNeeded("tmp/webapp/css");
-	cp('webapp/style.css','tmp/webapp/css/style.css');
 	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/webapp/css/font-awesome.min.css');
 
 	mkdirIfNeeded("tmp/webapp/fonts");
-	cpIfNeeded('webapp/fonts/Orbitron-Regular.ttf', 'tmp/webapp/fonts/Orbitron-Regular.ttf');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/webapp/fonts/fontawesome-webfont.woff');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/webapp/fonts/fontawesome-webfont.woff2');
 
@@ -73,7 +66,7 @@ function build() {
 	  // The bundle's starting point. This file will be
 	  // included, along with the minimum necessary code
 	  // from its dependencies
-	  entry: 'webapp/app.js',
+	  entry: 'webapp/js/app.js',
 	  // If you have a bundle you want to re-use (e.g., when using a watcher to rebuild as files change),
 	  // you can tell rollup use a previous bundle as its starting point.
 	  // This is entirely optional!

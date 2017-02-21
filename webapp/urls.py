@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import include, url
-from django.contrib import admin
+from django.conf.urls import url
+import webapp.views as views
 
 urlpatterns = [
-    url(r'^', include('webapp.urls')),
-    url(r'^service/', include('service.urls')),
-    url(r'^admin/', admin.site.urls)
+    url(r'^$', views.home)
 ]

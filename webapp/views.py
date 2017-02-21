@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.apps import AppConfig
+from django.shortcuts import render
 
-
-class VcsConfig(AppConfig):
-    name = 'service'
+def home(request):
+    return render(request, 'webapp/index.html')
