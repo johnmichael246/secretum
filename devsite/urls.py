@@ -17,6 +17,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^', include('webapp.urls')),
-    url(r'^service/', include('service.urls')),
+    url(r'^service/', include('service.urls'), name="service-root"),
     url(r'^admin/', admin.site.urls)
 ]

@@ -94,7 +94,7 @@ class App extends React.Component {
 		this.state = {loading: true, route: {page: 'home'}};
 
 		this._initDatabase().then(db => {
-			this.store = new Store({endpoint: './service', db: db});
+			this.store = new Store({endpoint: settings.service_url, db: db});
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
@@ -143,7 +143,7 @@ class App extends React.Component {
 		const children = [
 			epc("div", {key: "header", className: "header"}, [
 				epc("div", {key: "title", className: "title"}, "Secretum"),
-				epc("div", {key: "version", className: "version"}, settings.version)
+				epc("div", {key: "version", className: "version"}, settings.build_version)
 			]),
 			ep(Router, {key: "router", className: "page", rules: rules, route: this.state.route, id: "router-main"}),
 			epc("div", {key: "footer", className: "footer"}, tabs)

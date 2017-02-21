@@ -21,6 +21,9 @@ from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
 from .models import Trunk, Commit
 
+def hello(request):
+    return JsonResponse({'status': 'ok'})
+
 def meta(request):
     response = JsonResponse([{'id': t.id, 'name': t.name} for t in Trunk.objects.all()], safe=False)
     return response

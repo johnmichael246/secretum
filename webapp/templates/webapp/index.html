@@ -38,7 +38,8 @@
 	<script>
 		var settings = {
 			idb_name: '{{ idb_name }}',
-			version: '{{ version }}'
+			build_version: '{{ version }}',
+			service_url: "{% url 'service-root' %}"
 		};
 	</script>
 </head>

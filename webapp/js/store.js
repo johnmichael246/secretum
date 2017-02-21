@@ -178,7 +178,7 @@ export class Store {
   }
 
   findRemoteVaults() {
-    return this._get('/meta');
+    return this._get('./meta');
   }
 
   getSyncStatus() {
@@ -204,7 +204,7 @@ export class Store {
           opts.sinceCommitId = meta.sync.snapshot.id;
         }
 
-        return this._get(`/fetch`, {params: opts})
+        return this._get(`./fetch`, {params: opts})
           .then(({vault: vault, snapshots: snapshots}) => ({vault: vault, snapshots: snapshots, meta: meta}));
       }).then(({vault: vault, meta: meta, snapshots: snapshots}) => {
         this._transaction(['secrets','groups','meta'], {mode: 'readwrite', strategy: 'new'});
