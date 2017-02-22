@@ -24,7 +24,7 @@ export function Button(props) {
 
 	return epc('div', {
 		key: props.label,
-		className: props.toggled ? 'button toggled' : 'button',
+		className: (props.toggled ? 'button toggled' : 'button')+' '+props.className,
 		onClick: props.toggled ? undefined : props.handler},
 		[icon, label]);
 }

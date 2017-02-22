@@ -66,52 +66,58 @@ export class SyncPage extends React.Component {
 
       if(this.state.status !== null) {
         let status = this.state.status;
-        let vault = status.vault||{};
+        let vault = status.vault;
         let snapshot = status.snapshot||{};
-        let datum = {
-          id: 0,
-          vaultId: (vault.id)||'',
-          vaultName: (vault.name)||'',
-          lastSync: status.when||'',
-          lastDevice: snapshot.device||''
-        };
 
-        children.push(ep(DataTable, {
-          key: 'status',
-          className: 'sync-status',
-          columns: {
-            'vaultId': 'Vault ID',
-            'vaultName': 'Vault Name',
-            'lastSync': 'Last Sync',
-            'lastDevice': 'Last Device'
-          },
-          data: [datum]
-        }));
+        if(vault != null) {
+          let datum = {
+            id: 0,
+            vaultId: (vault.id)||'',
+            vaultName: (vault.name)||'',
+            lastSync: status.when||'',
+            lastDevice: snapshot.device||''
+          };
+
+          children.push(ep(DataTable, {
+            key: 'status',
+            className: 'sync-status',
+            columns: {
+              'vaultId': 'Vault ID',
+              'vaultName': 'Vault Name',
+              'lastSync': 'Last Sync',
+              'lastDevice': 'Last Device'
+            },
+            data: [datum]
+          }));
+
+          children.push(
+            ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
+          );
+
+        }
+      }
+
+      if((this.state.changes||[]).length > 0 || ((this.state.status||{}).vault||null) != null) {
+        const changes = this.state.changes
+          .filter(c => c.table === 'secrets')
+          .map(c => ({
+            action: c.operator,
+            id: c.record.id,
+            resource: c.record.resource,
+            principal: c.record.principal
+          }));
 
         children.push(
-          ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
+          ep(DataTable, {
+            key: 'changes',
+            className: 'sync-changes',
+            columns: {action: 'Action', id: 'ID', resource: 'Resource', principal: 'Principal'},
+            data: changes
+          })
         );
       }
 
-      const changes = this.state.changes
-        .filter(c => c.table === 'secrets')
-        .map(c => ({
-          action: c.operator,
-          id: c.record.id,
-          resource: c.record.resource,
-          principal: c.record.principal
-        }));
-
-      children.push(
-        ep(DataTable, {
-          key: 'changes',
-          className: 'sync-changes',
-          columns: {action: 'Action', id: 'ID', resource: 'Resource', principal: 'Principal'},
-          data: changes
-        })
-      );
-
-      if(this.state.changes.length === 0 && this.state.vaults !== undefined) {
+      if(this.state.status.vault == null && this.state.vaults !== undefined) {
         children.push(
           epc('select', {key: 'vaults', value: this.state.selectedVaultId, onChange: this._onVaultSelect},
             this.state.vaults.map(vault => epc('option', {key: vault.id, value: vault.id}, `${vault.name}`)))
