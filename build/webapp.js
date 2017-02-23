@@ -43,9 +43,6 @@ function mkdirIfNeeded(path) {
 	fs.mkdirSync(path);
 }
 
-// used to track the cache for subsequent bundles
-var cache;
-
 function build() {
 	console.log("Building your app, master!")
 
@@ -64,26 +61,19 @@ function build() {
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/static/webapp/fonts/fontawesome-webfont.woff2');
 
 	rollup.rollup({
-	  // The bundle's starting point. This file will be
-	  // included, along with the minimum necessary code
-	  // from its dependencies
 	  entry: 'webapp/js/app.js',
-	  // If you have a bundle you want to re-use (e.g., when using a watcher to rebuild as files change),
-	  // you can tell rollup use a previous bundle as its starting point.
-	  // This is entirely optional!
-	  cache: cache,
 		external: ['react']
 	}).then(function(bundle) {
 	  // Generate bundle + sourcemap
 	  var result = bundle.generate({
 	    // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
-	    format: 'es'
+	    format: 'es',
+			sourceMap: true
+			/*sourceMapFile: './tmp/static/js/app.js.map'*/
 	  });
 
-	  // Cache our bundle for later use (optional)
-	  cache = bundle;
-
-	  fs.writeFileSync('tmp/static/webapp/js/app.js', result.code );
+	  fs.writeFileSync('tmp/static/webapp/js/app.js', result.code + '\n//# sourceMappingURL=app.js.map');
+		fs.writeFileSync('tmp/static/webapp/js/app.js.map', result.map.toString() );
 	});
 
 }
