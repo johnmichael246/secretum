@@ -12,9 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// An almost compliant implementation of Promises (https://promisesaplus.com/).
+// This implementation calls handlers passed to .then immediately and synchronously,
+// as soon as the promise is resolved/rejected. That is, neither as a micro-, nor a macro-task.
+// This is a violation of the specification's section 2.2.4, and results in 22/850 failed tests.
+
 export function SyncThenable(handler) {
   const self = {};
+
   var status = 'pending';
+  self.status = () => status;
+  self.isPending = () => status === 'pending';
+  
   var result;
   const chain = [];
 
@@ -37,7 +46,7 @@ export function SyncThenable(handler) {
   
     var downstreamValue = result;
 
-    if(isHandler(handlers[status])) { // TODO: improve handler test
+    if(isHandler(handlers[status])) {
       try {
         // Handlers must not be called with a bound this
         downstreamValue = handlers[status].call(undefined, result);
@@ -63,15 +72,13 @@ export function SyncThenable(handler) {
     }
   }
 
-  self.status = () => status;
-
   self.resolve = (value) => {
-    if(status !== 'pending') return; //throw new Error('Attempting to resolve a non-pending promise.');
+    if(status !== 'pending') return;
     
-    /*if(value === self) {
+    if(value === self) {
       self.reject(new TypeError('Attempted to start an infinite loop.'));
       return;
-    }*/
+    }
 
     // If value is a non-null object or function, attempt to put it upstream
     if(value != null && (typeof value == 'object' || typeof value === 'function')) {
@@ -115,7 +122,7 @@ export function SyncThenable(handler) {
   }
 
   self.reject = (reason) => {
-    if(status !== 'pending') return;//throw new Error('Attempting to reject a non-pending promise.');
+    if(status !== 'pending') return;
     finalize(reason, 'rejected');
   }
 
@@ -129,18 +136,10 @@ export function SyncThenable(handler) {
   }
 
   self.then = (fulfilled, rejected) => {
-    // Ignoring handlers, if they are not functions
-    if(fulfilled !== undefined && typeof fulfilled !== 'function') {
-      fulfilled = undefined;
-    }
-    if(rejected !== undefined && typeof rejected !== 'function') {
-      rejected = undefined;
-    }
-
     const downstream = SyncThenable();
     const handlers = {'resolved': fulfilled, 'rejected': rejected};
 
-    /* If the self is pending, then put this link downstream for future. */
+    // If the self is pending, then put this link downstream for future.
     if(status === 'pending') {
       chain.push({downstream: downstream, handlers: handlers});
     } else {
@@ -183,27 +182,8 @@ SyncThenable.reject = function(value) {
   return SyncThenable((resolve,reject)=>reject(value));
 }
 
-function isThenable(value) {
-  return value !== undefined
-    && value !== null
-    && typeof value === 'object'
-    && typeof value.then === 'function';
-}
-
 function isHandler(value) {
   return value !== undefined 
     && value !== null 
     && typeof value === 'function';
-}
-
-function once(fn) {
-    var called = false;
-    return {
-      protector: function () {
-        if (called) return;
-        called = true;
-        returnValue = fn.apply(this, arguments);
-      },
-      called: ()=>called
-    };
 }
