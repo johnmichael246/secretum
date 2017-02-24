@@ -13,100 +13,142 @@
 // limitations under the License.
 
 export function SyncThenable(handler) {
-  var state = 'pending';
+  const self = {};
+  var status = 'pending';
   var result;
   const chain = [];
 
-  const isThenable = value => value !== undefined
-    && typeof value === 'object'
-    && value.hasOwnProperty('then')
-    && value.then instanceof Function;
-
-  const process = (newResult, newState) => {
-    state = newState;
+  // Immediately changes this promise's state, and processes the chain.
+  function finalize(newResult, newStatus) {
+    status = newStatus;
     result = newResult;
 
-    if(newState === 'fulfilled') {
-      chain.forEach(link => {
-        if(link.fulfilled === undefined) {
-          link.promise.resolve(newResult);
-        } else {
-          link.promise.resolve(link.fulfilled(newResult));
-        }
-      });
-    } else if(newState === 'rejected') {
-      chain.forEach(link => {
-        if(link.rejected === undefined) {
-          link.promise.reject(newResult);
-        } else {
-          link.promise.reject(link.rejected(newResult));
-        }
-      });
-    } else {
-      throw new Error('Illegal new state of the promise');
+    while(chain.length > 0) {
+      const link = chain.shift();
+      process(link.downstream, link.handlers);
     }
-  };
-
-  const self = {};
-
-  self.isPending = function() {
-    return state === 'pending';
   }
 
-  self.resolve = value => {
-    if(state !== 'pending') throw new Error('Attempting to resolve a non-pending promise.');
-    if(isThenable(value)) {
-      value.then(newValue => process(newValue,'fulfilled'),
-                newValue => process(newValue,'rejected'));
-    } else {
-      process(value, 'fulfilled');
+  // Propogates the promise's status to the downstream promise
+  function process(downstream, handlers) {
+    if(status === 'pending') {
+      throw new Error('Premature processing!');
     }
-  };
+  
+    var downstreamValue = result;
 
-  self.reject = value => {
-    if(state !== 'pending') throw new Error('Attempting to reject a non-pending promise.');
-    if(isThenable(value)) {
-      value.then(newValue => process(newValue,'fulfilled'),
-                newValue => process(newValue,'rejected'));
-    } else {
-      process(value, 'rejected');
+    if(isHandler(handlers[status])) { // TODO: improve handler test
+      try {
+        // Handlers must not be called with a bound this
+        downstreamValue = handlers[status].call(undefined, result);
+      } catch(err) {
+        // If the downstream handler throws, we must directly reject the downstream promise.
+        downstream.reject(err);
+        return;
+      }
+
+      if(downstreamValue === downstream) {
+        downstream.reject(new TypeError('A handler attempted to chain an infinite loop'));
+        return;
+      }
     }
-  };
+
+    // Downstream is resolved, if at least one holds:
+    // (1) the upstream promise was fulfilled
+    // (2) the downstream promise had a rejection handler
+    if(status == 'resolved' || isHandler(handlers['rejected'])) {
+      downstream.resolve(downstreamValue);
+    } else {
+      downstream.reject(downstreamValue);
+    }
+  }
+
+  self.status = () => status;
+
+  self.resolve = (value) => {
+    if(status !== 'pending') return; //throw new Error('Attempting to resolve a non-pending promise.');
+    
+    /*if(value === self) {
+      self.reject(new TypeError('Attempted to start an infinite loop.'));
+      return;
+    }*/
+
+    // If value is a non-null object or function, attempt to put it upstream
+    if(value != null && (typeof value == 'object' || typeof value === 'function')) {
+      
+      // Protected handlers to be passed to the then function, if present
+      var called = false;
+      const onFulfilled = newValue => {
+        if(called) return;
+        called = true;
+        self.resolve(newValue)
+      };
+      const onRejected = newReason => {
+        if(called) return;
+        called = true;
+        self.reject(newReason);
+      };
+
+      var vthen;
+      try {
+        vthen = value.then;
+      } catch(err) {
+        // Always reject, if property retrieval failed
+        finalize(err, 'rejected');
+        return;
+      }
+
+      if(typeof vthen === 'function') {
+        try {
+          vthen.call(value, onFulfilled, onRejected);
+          return; // Handlers will finish resolution of this promise
+        } catch(err) {
+          // Only reject, if no handler was called
+          if(!called) finalize(err, 'rejected');
+          return; // Finish here, because either a handler or finalize was or will be called
+        }
+      }
+    }
+
+    // If we are here, then the value should be used as is
+    finalize(value, 'resolved');
+  }
+
+  self.reject = (reason) => {
+    if(status !== 'pending') return;//throw new Error('Attempting to reject a non-pending promise.');
+    finalize(reason, 'rejected');
+  }
 
   if(handler !== undefined) {
-    handler(self.resolve, self.reject);
+    try {
+      handler(self.resolve, self.reject);
+    } catch(err) {
+      // Exceptions in the handler are treated as an immediate rejection of this promise
+      finalize(err, 'rejected');
+    }
   }
 
   self.then = (fulfilled, rejected) => {
+    // Ignoring handlers, if they are not functions
     if(fulfilled !== undefined && typeof fulfilled !== 'function') {
-      throw new Error('Attempting to pass a non-function as then(fulfilled,).');
+      fulfilled = undefined;
     }
     if(rejected !== undefined && typeof rejected !== 'function') {
-      throw new Error('Attempting to pass a non-function as then(,rejected).');
+      rejected = undefined;
     }
 
-    if(state === 'pending') {
-      const inner = SyncThenable();
-      chain.push({promise: inner, fulfilled: fulfilled, rejected: rejected});
-      return inner;
+    const downstream = SyncThenable();
+    const handlers = {'resolved': fulfilled, 'rejected': rejected};
+
+    /* If the self is pending, then put this link downstream for future. */
+    if(status === 'pending') {
+      chain.push({downstream: downstream, handlers: handlers});
     } else {
-      var innerResult;
-      if(state === 'fulfilled' && fulfilled !== undefined) {
-        innerResult = fulfilled(result);
-      } else if(state === 'rejected' && rejected !== undefined) {
-        innerResult = rejected(result);
-      }
-
-      if(isThenable(innerResult)) {
-        const inner = SyncThenable();
-        innerResult.then(newValue => inner.resolve(newValue),
-                        newValue => inner.reject(newValue));
-        return inner;
-      } else {
-        return SyncThenable(resolve=>resolve(innerResult));
-      }
+      process(downstream, handlers);
     }
-  };
+
+    return downstream;
+  }
 
   return self;
 }
@@ -132,3 +174,36 @@ SyncThenable.all = function(array) {
 
   return ret;
 };
+
+SyncThenable.resolve = function(value) {
+  return SyncThenable((resolve)=>resolve(value));
+}
+
+SyncThenable.reject = function(value) {
+  return SyncThenable((resolve,reject)=>reject(value));
+}
+
+function isThenable(value) {
+  return value !== undefined
+    && value !== null
+    && typeof value === 'object'
+    && typeof value.then === 'function';
+}
+
+function isHandler(value) {
+  return value !== undefined 
+    && value !== null 
+    && typeof value === 'function';
+}
+
+function once(fn) {
+    var called = false;
+    return {
+      protector: function () {
+        if (called) return;
+        called = true;
+        returnValue = fn.apply(this, arguments);
+      },
+      called: ()=>called
+    };
+}

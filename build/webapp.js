@@ -12,24 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const console = require("console");
-const fs = require("fs");
-const nodemon = require("nodemon");
-const rollup = require("rollup");
-const process = require("process");
+const console = require('console');
+const fs = require('fs');
+const rollup = require('rollup');
+const utils = require('./utils.js');
 
 function cp(src, dst) {
 	console.log("Copying " + src + " to " + dst);
 	fs.createReadStream(src).pipe(fs.createWriteStream(dst));
-}
-
-function exists(path) {
-	try {
-		fs.accessSync(path);
-	} catch(e) {
-		return false;
-	}
-	return true;
 }
 
 function cpIfNeeded(src, dst) {
@@ -38,25 +28,17 @@ function cpIfNeeded(src, dst) {
 	cp(src,dst);
 }
 
-function mkdirIfNeeded(path) {
-	if(exists(path)) return;
-	fs.mkdirSync(path);
-}
-
 function build() {
 	console.log("Building your app, master!")
 
-	mkdirIfNeeded('tmp');
-	mkdirIfNeeded("tmp/static");
-	mkdirIfNeeded("tmp/static/webapp");
-	mkdirIfNeeded("tmp/static/webapp/js");
+	utils.mkdirIfNeeded("tmp/static/webapp/js");
 	cpIfNeeded('node_modules/react/dist/react.js','tmp/static/webapp/js/react.js');
 	cpIfNeeded('node_modules/react-dom/dist/react-dom.js','tmp/static/webapp/js/react-dom.js');
 
-	mkdirIfNeeded("tmp/static/webapp/css");
+	utils.mkdirIfNeeded("tmp/static/webapp/css");
 	cpIfNeeded('node_modules/font-awesome/css/font-awesome.min.css', 'tmp/static/webapp/css/font-awesome.min.css');
 
-	mkdirIfNeeded("tmp/static/webapp/fonts");
+	utils.mkdirIfNeeded("tmp/static/webapp/fonts");
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff', 'tmp/static/webapp/fonts/fontawesome-webfont.woff');
 	cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/static/webapp/fonts/fontawesome-webfont.woff2');
 

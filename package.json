@@ -4,7 +4,8 @@
   "scripts": {
     "build": "node ./build/webapp.js",
     "build-watch": "node ./node_modules/nodemon/bin/nodemon.js --watch webapp/js ./build/webapp.js",
-    "test": "node ./node_modules/eslint/bin/eslint.js ./webapp/js"
+    "test": "node ./node_modules/eslint/bin/eslint.js ./webapp/js",
+    "test-st": "node ./build/webapp-tests.js && promises-aplus-tests tmp/tests/webapp/sync-thenable.js"
   },
   "dependencies": {
     "font-awesome": "^4.7.0",
@@ -17,6 +18,7 @@
     "eslint-plugin-react": "^6.8.0",
     "nodemon": "^1.11.0",
     "rollup": "^0.38.0",
-    "sloc": "^0.1.11"
+    "sloc": "^0.1.11",
+    "promises-aplus-tests": "*"
   }
 }
