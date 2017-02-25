@@ -24,5 +24,3 @@ module.exports = {
         };
     }
 };
-
-// TODO: filter out tests that are expected to fail

@@ -3,9 +3,8 @@
   "version": "0.1.0-dev",
   "scripts": {
     "build": "node ./build/webapp.js",
-    "build-watch": "node ./node_modules/nodemon/bin/nodemon.js --watch webapp/js ./build/webapp.js",
-    "test": "node ./node_modules/eslint/bin/eslint.js ./webapp/js",
-    "test-st": "node ./build/webapp-tests.js && promises-aplus-tests tmp/tests/webapp/sync-thenable.js"
+    "build-watch": "nodemon --watch webapp/js ./build/webapp.js",
+    "test": "node ./build/webapp-tests.js"
   },
   "dependencies": {
     "font-awesome": "^4.7.0",

@@ -16,14 +16,52 @@ const fs = require('fs');
 const rollup = require('rollup');
 const utils = require('./utils.js')
 const console = require('console');
+const cprocess = require('child_process');
 
+console.log('Running tests of the webapp...');
+process.stdout.write('Performing ESLint of JS code...');
+try {
+    cprocess.execFileSync('./node_modules/.bin/eslint', ['./webapp/js']);
+} catch(err) {
+    console.log('Failed!');
+    console.log(err.stdout.toString());
+    process.exit(1);
+}
+console.log('OK');
+
+
+process.stdout.write('Preparing PromisesA+ tests...');
 utils.mkdirIfNeeded('./tmp/tests/webapp');
-
 rollup.rollup({
-    entry: 'webapp/js-tests/sync-thenable.js'
+    entry: './webapp/js-tests/sync-thenable.js'
 }).then(function(bundle) {
     var result = bundle.generate({format: 'cjs'});
-    fs.writeFileSync('tmp/tests/webapp/sync-thenable.js', result.code);
-}).catch(e => {
-    console.error('Rollup failed!', e);
+    fs.writeFileSync('./tmp/tests/webapp/sync-thenable.js', result.code);
+    console.log('OK');
+    runPromiseTests();
+}, error => {
+    console.error('Rollup failed!', error);
+    process.exit(1);
 });
+
+function runPromiseTests() {
+    process.stdout.write('Running PromisesA+ tests...');
+    try {
+        cprocess.execFileSync('./node_modules/.bin/promises-aplus-tests',
+            ['./tmp/tests/webapp/sync-thenable.js', '--no-colors'], {});
+    } catch(err) {
+        //fs.writeFileSync('./webapp/js-tests/sync-thenable.last.log', err.stdout);
+        const lastStdout = fs.readFileSync('./webapp/js-tests/sync-thenable.last.log');
+        if(err.stdout.equals(lastStdout)) {
+            console.log('OK');
+        } else {
+            console.log('Failed!')
+            console.error("Ouputs of SyncThenable's tests have changed!");
+            console.error('=============================================')
+            console.error(err.stdout.toString());
+            console.error('=============================================')
+            console.error(err.stderr.toString());
+            process.exit(1);
+        }
+    }
+}
