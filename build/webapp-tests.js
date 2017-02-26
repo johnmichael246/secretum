@@ -48,7 +48,7 @@ function runPromiseTests() {
     process.stdout.write('Running PromisesA+ tests...');
     try {
         cprocess.execFileSync('./node_modules/.bin/promises-aplus-tests',
-            ['./tmp/tests/webapp/sync-thenable.js', '--no-colors'], {});
+            ['./tmp/tests/webapp/sync-thenable.js', '--reporter tap'], {});
     } catch(err) {
         //fs.writeFileSync('./webapp/js-tests/sync-thenable.last.log', err.stdout);
         const lastStdout = fs.readFileSync('./webapp/js-tests/sync-thenable.last.log');
