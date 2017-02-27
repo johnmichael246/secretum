@@ -14,7 +14,40 @@
 
 import { SyncThenable } from './sync-thenable.js';
 
-export class Store {
+export function load(config) {
+		return new Promise((resolve, reject) => {
+			var openRequest = window.indexedDB.open(config.idb_name, 1);
+			openRequest.onsuccess = () => {
+				const db = openRequest.result;
+				db.onerror = console.error;
+
+				resolve(db);
+
+				console.log('IndexedDB is now open.');
+			};
+			openRequest.onerror = reject;
+			openRequest.onupgradeneeded = () => {
+				const db = openRequest.result;
+        db.onerror = console.error;
+
+				db.createObjectStore('secrets', {keyPath: 'id', autoIncrement: true});
+				const groups = db.createObjectStore('groups', {keyPath: 'id', autoIncrement: true});
+				const meta = db.createObjectStore('meta');
+
+				// Initializing with minimum required data
+				return SyncThenable.all([
+          meta.put([], 'changes'),	
+          meta.put({snapshot: null, vault: null, when: null}, 'sync'),
+          groups.put({name: 'Default Group'})
+        ].map(thenify));
+			}
+		}).then(db => {
+      config.db = db;
+      return new Store(config)
+    });
+	}
+
+class Store {
   constructor(config) {
     this.config = config;
   }
@@ -344,8 +377,9 @@ export class Store {
   }
 
   clear() {
-    this._transaction(['meta','secrets','groups'], {mode: 'readwrite', strategy: 'new'});
-    return this._clear();
+    return thenify(window.indexedDB.deleteDatabase(this.config.idb_name)).then(() => {
+      return load(this.config).then(store => this.config.db = store.config.db);
+    });
   }
 
   _clear() {

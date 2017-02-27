@@ -110,7 +110,7 @@ export class HomePage extends React.Component {
 
   render() {
     const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
-    return epc("div", {className: "page home"}, [
+    return epc("div", {className: "page page--home"}, [
       ep(SecretsTable, {key: "table", secrets: this.state.secrets, actionHandlers: handlers}),
       ep(Button, {key: '!new', className: 'new-secret', handler: this._onNew, label: 'New Secret', icon: 'plus-square'}),
       ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()})

@@ -13,9 +13,10 @@
 // limitations under the License.
 
 const console = require('console');
-const fs = require('fs');
+const fs = require('fs-extra');
 const rollup = require('rollup');
 const utils = require('./utils.js');
+const sass = require('node-sass');
 
 function cp(src, dst) {
   console.log("Copying " + src + " to " + dst);
@@ -43,21 +44,31 @@ function build() {
   cpIfNeeded('node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'tmp/static/webapp/fonts/fontawesome-webfont.woff2');
 
   rollup.rollup({
-    entry: 'webapp/js/app.js',
+    entry: './webapp/js/app.js',
     external: ['react']
   }).then(function(bundle) {
     // Generate bundle + sourcemap
     var result = bundle.generate({
       // output format - 'amd', 'cjs', 'es', 'iife', 'umd'
       format: 'es',
-      sourceMap: true
-      /*sourceMapFile: './tmp/static/js/app.js.map'*/
+      sourceMap: true,
+      sourceMapFile: './webapp/js/bundle.js.map'
     });
 
-    fs.writeFileSync('tmp/static/webapp/js/app.js', result.code + '\n//# sourceMappingURL=app.js.map');
-    fs.writeFileSync('tmp/static/webapp/js/app.js.map', result.map.toString() );
+    fs.writeFileSync('tmp/static/webapp/js/bundle.js', result.code + '\n//# sourceMappingURL=bundle.js.map');
+    fs.writeFileSync('tmp/static/webapp/js/bundle.js.map', result.map.toString() );
   });
 
+  const styles = sass.renderSync({
+    file: './webapp/scss/app.scss',
+    sourceMap: true,
+    outFile: './webapp/css/app.css'
+  });
+  fs.writeFileSync('./tmp/static/webapp/css/app.css', styles.css);
+  fs.writeFileSync('./tmp/static/webapp/css/app.css.map', styles.map);
+
+  // Copying source files...
+  fs.copySync('./webapp/scss', './tmp/static/webapp/scss');
 }
  
 // Runnable as a stand-alone script

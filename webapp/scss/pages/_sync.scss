@@ -12,33 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const path = require('path');
-const fs = require('fs');
+.page--sync {
+  display: flex;
+  flex-direction: column;
 
-function exists(path) {
-	try {
-		fs.accessSync(path);
-	} catch(e) {
-		return false;
-	}
-	return true;
+  justify-content: center;
+  align-items: stretch;
+  margin: 5em;
+  /* background-color: white; */
+
+  >* {
+    margin: 0.5em;
+  }
+
+  .table--sync-status {
+    max-width: 50em;
+  }
+
+  .table--sync-changes {
+    max-width: 50em;
+  }
 }
-
-function mkdirIfNeeded(target) {
-	if(exists(target)) {
-        return;
-    }
-    
-    const parent = path.dirname(target);
-    if(!exists(parent)) {
-        /* Recursively builds the path */
-        mkdirIfNeeded(parent);
-    }
-
-	fs.mkdirSync(target);
-}
-
-module.exports = {
-    mkdirIfNeeded: mkdirIfNeeded,
-    exists: exists
-};

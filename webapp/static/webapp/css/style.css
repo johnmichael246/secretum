@@ -22,6 +22,10 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
 }
 
+body {
+	cursor: default;
+}
+
 /* Reset */
 body, div, table, form {
 	margin: 0px;
@@ -38,85 +42,13 @@ body {
 
 #root {
 	height: 100%;
+	width: 100%;
 	position: absolute;
-	overflow: auto;
-	-webkit-overflow-scrolling: touch;
+	/*-webkit-overflow-scrolling: touch;*/
 	top:0;
 	left:0;
-	bottom:0;
-	right:0;
 }
 
-.app {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.app > .header {
-	background-color: #494949;
-	width: 100%;
-	color: white;
-	text-align: center;
-	text-shadow: 0px 0px 10px rgba(255,255,255,0.5);
-	box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
-	display: flex;
-	flex-direction: column;
-}
-
-.app > .header > .title {
-	font-family: Orbitron, sans-serif;
-	font-size: 2em;
-	padding-top: 0.2em;
-	text-transform: uppercase;
-}
-
-.app > .header > .version {
-	font-family: sans-serif;
-	font-size: 0.8em;
-	align-self: center;
-}
-
-.app > .page {
-	display: flex;
-	/* flex-grow: 1; */
-	flex-direction: column;
-	/*overflow: hidden;*/
-}
-
-.page.sync {
-	/* max-width: 30em; */
-	justify-content: center;
-	align-items: center;
-	/* background-color: white; */
-}
-
-.page.sync > * {
-	margin: 0.5em;
-}
-
-.home {
-	flex-grow: 1;
-	align-self: stretch;
-}
-
-.home > *:not(.secrets) {
-	flex-shrink: 0;
-}
-.app .footer {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	flex-shrink: 0;
-	width: 100%;
-}
-
-.app .footer .button {
-	flex-grow: 1;
-	max-width: none;
-}
 
 .search {
 	font-size: 2em;
@@ -146,10 +78,6 @@ body {
 	padding: 1em;
 	border-bottom-left-radius: 1rem;
 	border-bottom-right-radius: 1rem;
-}
-
-.footer .button:not(:first-child) {
-	border-left: 0px;
 }
 
 .dialog .button {
@@ -185,126 +113,6 @@ body {
 	color: #5f5f5f;
 }
 
-.table {
-	display: flex;
-	flex-direction: column;
-}
-
-.table.sync-status,
-.table.sync-changes {
-	/* width: 30em; */
-	align-self: stretch;
-}
-
-.table .body {
-	flex-grow: 1;
-}
-
-.table > .body {
-	overflow-y: scroll;
-}
-
-.table.sync-status > .body,
-.table.sync-changes > .body {
-	overflow-y: hidden;
-}
-
-.table.secrets {
-	flex-grow: 1;
-}
-
-.table > .body > .row,
-.table > .header {
-	display: flex;
-}
-
-.table > .header {
-		flex-shrink: 0;
-}
-
-.table .cell {
-	overflow: hidden;
-	white-space: nowrap;
-	width: 1px;
-	flex-grow: 1;
-	padding: 1px 5px 1px 0px;
-	text-overflow: ellipsis;
-}
-
-.table > .body > .row {
-	border-bottom: 1px solid rgb(208, 208, 208);
-}
-
-.table > .header > .cell {
-	border-top: 1px solid black;
-	background-color: #494949;
-	color: white;
-	cursor: default;
-	text-align: center;
-	flex-grow: 1;
-	width: initial;
-	padding: 0.1em 1em;
-}
-
-.table > .body > .row:not(.selectable) > .cell {
-	cursor: default;
-}
-
-.table > .body > .row.selectable > .cell {
-	cursor: pointer;
-}
-
-.table > .body > .row:nth-child(2n+1) .cell {
-	background-color: rgb(236, 236, 236);
-}
-
-@media (pointer:fine) {
-	.table > .body > .row.selectable:hover:not(.selected) .cell {
-		background-color: #5f5f5f;
-		color: white;
-	}
-}
-
-.table > .body > .row.selected .cell {
-	background-color: #71906f;
-	color: white;
-}
-
-/* Common cell properties */
-.cell.actions {
-	text-align: center;
-}
-
-.cell.actions a,
-.cell.actions a:visited {
-	color: black;
-	margin: 0px 5px;
-}
-
-.secrets.table .cell.id {
-	width: 3ch;
-	flex-grow: 0;
-	text-align: center;
-}
-
-.secrets.table .cell.group-name { flex-grow: 1 }
-.secrets.table .cell.resource { flex-grow: 3}
-.secrets.table .cell.principal { flex-grow: 3 }
-.secrets.table .cell.note { flex-grow: 2; }
-.secrets.table .cell.actions { width: 80px; flex-grow: 0; }
-
-@media (max-width: 960px) {
-	.secrets .cell.note {
-		display: none;
-	}
-}
-
-@media (max-width: 768px) {
-	.secrets .cell.group-name {
-		display: none;
-	}
-}
-
 @media (max-width: 480px) {
 	.dialog {
 		display: block;
@@ -314,10 +122,6 @@ body {
 
 	.dialog, .dialog-title, .dialog-content {
 		border-radius: 0px;
-	}
-
-	.secrets .cell.actions {
-		display: none;
 	}
 
 	.search select {
@@ -357,11 +161,6 @@ body {
 	background-color: lightgrey;
 }
 
-.table .details-wrapper {
-	box-shadow: inset 0px 0px 40px grey;
-}
-
-
 .actions-box {
 	display: flex;
 	flex-direction: row;
@@ -381,49 +180,6 @@ body {
 
 .actions-box .action:last-child {
 	margin-right: 0em;
-}
-
-.button {
-	/* space */
-	padding: 0.1em;
-	font-size: 1.3em;
-	/* color */
-	border: 1px solid black;
-	background-color: #494949;
-	color: white;
-	box-shadow: 0px 0px 10px rgba(0,0,0,0.6);
-	/* mouse */
-	cursor: pointer;
-	/* layout */
-	display: flex;
-	flex-flow: row nowrap;
-	align-items: center;
-	width: 8em;
-}
-
-@media (pointer: coarse) {
-	.button {
-		font-size: 1.6em;
-	}
-}
-
-.button.toggled {
-		background-color: #71906f;
-		color: white;
-}
-
-.button .action-icon {
-	margin-left: 0.3em;
-}
-
-.button .action-label {
-	text-align: center;
-	flex-grow: 1;
-	margin-left: 0.3em;
-}
-
-.page.home .button.new-secret {
-	width: initial;
 }
 
 select {

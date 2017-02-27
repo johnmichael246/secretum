@@ -19,7 +19,7 @@ import { SyncPage} from './pages/sync.js';
 
 import { e, ep, epc } from './ui.js';
 import { Router } from './router.js';
-import { Store } from './store.js';
+import * as store from './store.js';
 
 import { Button } from './components/button.js';
 
@@ -93,8 +93,8 @@ class App extends React.Component {
 		super(props);
 		this.state = {loading: true, route: {page: 'home'}};
 
-		this._initDatabase().then(db => {
-			this.store = new Store({endpoint: settings.service_url, db: db});
+		store.load({endpoint: settings.service_url, idb_name: settings.idb_name}).then(store => {
+			this.store = store;
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
@@ -154,31 +154,6 @@ class App extends React.Component {
 		}
 
 		return epc("div", {className: "app"}, children);
-	}
-
-	_initDatabase() {
-		return new Promise((resolve, reject) => {
-			var db;
-			var openRequest = window.indexedDB.open(settings.idb_name, 1);
-			openRequest.onsuccess = () => {
-				db = openRequest.result;
-				db.onerror = console.error;
-
-				resolve(db);
-
-				console.log('IndexedDB is now open.');
-			};
-			openRequest.onerror = reject;
-			openRequest.onupgradeneeded = () => {
-				db = openRequest.result;
-
-				db.createObjectStore('secrets', {keyPath: 'id', autoIncrement: true});
-				db.createObjectStore('groups', {keyPath: 'id', autoIncrement: true});
-				db.createObjectStore('meta');
-
-				console.log('Database scheme upgraded or initialized!');
-			}
-		});
 	}
 }
 

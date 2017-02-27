@@ -16,7 +16,18 @@
 
 import { epc } from '../ui.js';
 
+import { camelToDash } from '../utils.js';
+
 export class DataTable extends React.Component {
+	/*
+	 * The properties schema:
+	 * 1. data (*) - an array (or a promise) of records to show in this table.
+	 * 2. columns (*) - an object mapping keys in data records to column labels.
+	 * 3. detailsFactory - a factory of React components from a data record.
+	 * 
+	 * (*) - required value
+	 * @param {Object} props
+	 */
 	constructor(props) {
 		super(props);
 		this.state = this._setup(props);
@@ -24,26 +35,29 @@ export class DataTable extends React.Component {
 		this._onRowClick = this._onRowClick.bind(this);
 	}
 
+	/**
+	 * Handles resolving promises in props.data.
+	 * 
+	 * @returns a state update object.
+	 */
 	_setup(props) {
+		const handleData = data => ({
+			loading: false,
+			data: data,
+			detailed: Array(data).fill(false)
+		});
+		
 		if(props.data instanceof Promise) {
-			props.data.then(d => this.setState({
-				loading: false,
-				data: d,
-				detailed: Array(d.length).fill(false)
-		}));
+			props.data.then(handleData).then(this.setState.bind(this));
 			return { loading: true };
 		} else {
-			return {
-				loading: false,
-				data: props.data,
-				detailed: Array(props.data.length).fill(false)
-			};
+			return handleData(props.data);
 		}
 	}
 
 	_buildHeaderRow(columns) {
-		return epc("div", {key: "header", className: "header"},
-		Object.keys(columns).map(name => epc("div", {key: name, className: `cell ${name}`}, columns[name])));
+		return epc("div", {key: "header", className: "table__header"},
+		Object.keys(columns).map(name => epc("div", {key: name, className: `table__cell table__cell--${camelToDash(name)}`}, columns[name])));
 	}
 
 	componentWillReceiveProps(props) {
@@ -62,16 +76,16 @@ export class DataTable extends React.Component {
 		var children = [];
 		children.push(this._buildHeaderRow(this.props.columns));
 
-		const buildCell = (col,val) => epc("div", {key: col, className: `cell ${col}`}, val);
+		const buildCell = (col,val) => epc("div", {key: col, className: `table__cell table__cell--${camelToDash(col)}`}, val);
 		const buildRow = (row,idx) => {
 			const props = {
 				key: idx,
-				className: `row ${this.props.detailsFactory === undefined ? '' : 'selectable'}`,
+				className: `table__row ${this.props.detailsFactory === undefined ? '' : 'table__row--expandable'}`,
 				onClick: () => this._onRowClick(idx)
 			};
 			// Additional class name for currently selected row
 			if(this.state.detailed[idx]) {
-				props.className += ' selected';
+				props.className += ' table__row--expanded';
 			}
 
 			return epc("div", props, Object.keys(this.props.columns).map((col) => buildCell(col,row[col])));
@@ -86,7 +100,7 @@ export class DataTable extends React.Component {
 					if(!flag) return;
 					// Inserts the details component after the currently selected rows
 					const details = this.props.detailsFactory(this.state.data[idx]);
-					rows.splice(idx+inserted+1, 0, epc("div", {key: `details-${idx}`, className: 'details-wrapper'}, details));
+					rows.splice(idx+inserted+1, 0, epc("div", {key: `details-${idx}`, className: 'table__details'}, details));
 					inserted = inserted+1;
 				});
 			}
@@ -95,8 +109,8 @@ export class DataTable extends React.Component {
 			body.push(epc("div", {key: "loading"}, "Loading..."));
 		}
 
-		children.push(epc('div', {key: 'body', className: 'body'},body));
+		children.push(epc('div', {key: 'body', className: 'table__body'},body));
 
-		return epc("div", {className: `table ${this.props.className}`}, children);
+		return epc("div", {className: `table table--${camelToDash(this.props.className)}`}, children);
 	}
 }

@@ -15,16 +15,17 @@
 import { ep, epc } from '../ui.js';
 
 export function Button(props) {
-	const icon = ep('div', {key: 'icon', className: `action-icon fa fa-${props.icon}`});
-	const label = epc('div', {key: 'label', className: 'action-label'}, props.label);
+	const icon = ep('div', {key: 'icon', className: `button__icon fa fa-${props.icon}`});
+	const label = epc('div', {key: 'label', className: 'button__label'}, props.label);
 
 	if(props.handler === undefined) {
-		throw new Error('Attempted to create a button without a callback');
+		throw new Error('Attempted to create a button without a callback!');
 	}
 
 	return epc('div', {
 		key: props.label,
-		className: (props.toggled ? 'button toggled' : 'button')+' '+props.className,
+		className: 'button' + (props.toggled ? ' button--toggled ' : ' ') 
+			+ (props.className === undefined ? '' : 'button--'+props.className),
 		onClick: props.toggled ? undefined : props.handler},
 		[icon, label]);
 }

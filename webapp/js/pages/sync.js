@@ -90,14 +90,11 @@ export class SyncPage extends React.Component {
             data: [datum]
           }));
 
-          children.push(
-            ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
-          );
-
         }
       }
 
-      if((this.state.changes||[]).length > 0 || ((this.state.status||{}).vault||null) != null) {
+      const hasLocalChanges = (this.state.changes||[]).length > 0;
+      if(hasLocalChanges || ((this.state.status||{}).vault||null) != null) {
         const changes = this.state.changes
           .filter(c => c.table === 'secrets')
           .map(c => ({
@@ -115,6 +112,12 @@ export class SyncPage extends React.Component {
             data: changes
           })
         );
+
+        if(hasLocalChanges) {
+          children.push(
+            ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
+          );
+        }
       }
 
       if(this.state.status.vault == null && this.state.vaults !== undefined) {
@@ -127,14 +130,14 @@ export class SyncPage extends React.Component {
         );
       }
 
-      if(this.state.status === null && this.state.changes.length > 0
-        || this.state.status !== null && this.state.changes.length === 0) {
+      if(this.state.status.vault === null && this.state.changes.length > 0
+        || this.state.status.vault !== null && this.state.changes.length === 0) {
         children.push(
           ep(Button, {key: '!clear', label: 'Clear', icon: 'warning', handler: this._onClear})
         );
       }
 
-      return epc('div', {className: 'page sync'}, children);
+      return epc('div', {className: 'page page--sync'}, children);
     }
   }
 

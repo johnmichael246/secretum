@@ -1,0 +1,51 @@
+// Copyright 2016-2017 Danylo Vashchilenko
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+/// Z-indexes map, gathering all Z layers of the application
+/// @access private
+/// @type Map
+/// @prop {String} key - Layer’s name
+/// @prop {Number} value - Z value mapped to the key
+$z-indexes: (
+  'modal': 5000,
+  'dropdown': 4000,
+  'default': 1,
+  'below': -1,
+);
+
+$breakpoints: (
+  'small': (max-width: 500px),
+  'medium': (max-width: 800px)
+);
+
+$dark-dark-grey: hsl(0, 0%, 29%);
+
+$outer-surface: $dark-dark-grey;
+$outer-crack: black;
+$outer-engraving: white;
+
+$inner-surface: shade(white, 5%);
+$inner-surface-alt: shade($inner-surface, 10%);
+
+$inner-surface-shaded: shade($inner-surface, 20%);
+$inner-surface-alt-shaded: shade($inner-surface-alt, 20%);
+
+$inner-print: tint(black, 30%);
+$inner-print-shaded: tint(black, 10%);
+
+$inner-line: shade($inner-surface, 25%);
+
+$inner-shadow: inset 0px 0px 40px grey;
+

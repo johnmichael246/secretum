@@ -12,33 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const path = require('path');
-const fs = require('fs');
-
-function exists(path) {
-	try {
-		fs.accessSync(path);
-	} catch(e) {
-		return false;
-	}
-	return true;
+export function camelToDash(camel) {
+  return camel.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
-
-function mkdirIfNeeded(target) {
-	if(exists(target)) {
-        return;
-    }
-    
-    const parent = path.dirname(target);
-    if(!exists(parent)) {
-        /* Recursively builds the path */
-        mkdirIfNeeded(parent);
-    }
-
-	fs.mkdirSync(target);
-}
-
-module.exports = {
-    mkdirIfNeeded: mkdirIfNeeded,
-    exists: exists
-};
