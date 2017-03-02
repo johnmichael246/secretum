@@ -74,6 +74,11 @@ export class DataTable extends React.Component {
 
 	render() {
 		var children = [];
+
+		if('title' in this.props) {
+			children.push(epc('div', {key: 'title', className: 'table__title'}, this.props.title));
+		}
+
 		children.push(this._buildHeaderRow(this.props.columns));
 
 		const buildCell = (col,val) => epc("div", {key: col, className: `table__cell table__cell--${camelToDash(col)}`}, val);

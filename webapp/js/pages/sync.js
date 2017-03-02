@@ -81,9 +81,10 @@ export class SyncPage extends React.Component {
           children.push(ep(DataTable, {
             key: 'status',
             className: 'sync-status',
+            title: 'Remote Vault',
             columns: {
-              'vaultId': 'Vault ID',
-              'vaultName': 'Vault Name',
+              'vaultId': 'ID',
+              'vaultName': 'Name',
               'lastSync': 'Last Sync',
               'lastDevice': 'Last Device'
             },
@@ -108,6 +109,7 @@ export class SyncPage extends React.Component {
           ep(DataTable, {
             key: 'changes',
             className: 'sync-changes',
+            title: 'Unsynced Changes',
             columns: {action: 'Action', id: 'ID', resource: 'Resource', principal: 'Principal'},
             data: changes
           })

@@ -20,6 +20,16 @@
   border-top: 1px solid $outer-crack;
 }
 
+.table__title {
+  background-color: $outer-surface;
+  color: $outer-engraving;
+
+  text-align: center;
+  font-weight: bold;
+
+  border-bottom: 1px solid $outer-crack;
+}
+
 .table__cell {
   // Cells are expanding equally by default
   flex: 1 0 1px;
@@ -156,7 +166,7 @@
   }
 }
 
-.table--sync-status, .table--sync-changes {
+.table--sync-status {
   .table__header, .table__body {
     overflow-y: hidden;
   }
@@ -164,6 +174,7 @@
   .table__cell {
     &--vault-id {
       flex: 0 0 3ch;
+      text-align: center;
     }
     &--last-sync {
       flex-grow: 2;
@@ -171,3 +182,18 @@
   }
 }
 
+.table--sync-changes {
+  .table__header, .table__body {
+    overflow-y: hidden;
+  }
+
+  .table__cell {
+    &--id {
+      flex: 0 0 3ch;
+      text-align: center;
+    }
+    &--action {
+      flex: 0 0 5ch;
+    }
+  }
+}

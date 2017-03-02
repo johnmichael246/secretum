@@ -17,19 +17,16 @@
   flex-direction: column;
 
   justify-content: center;
-  align-items: stretch;
-  margin: 5em;
-  /* background-color: white; */
 
   >* {
     margin: 0.5em;
   }
 
   .table--sync-status {
-    max-width: 50em;
+    max-width: 30em;
   }
 
   .table--sync-changes {
-    max-width: 50em;
+    max-width: 30em;
   }
 }
