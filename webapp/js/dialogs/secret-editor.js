@@ -24,8 +24,8 @@ export class SecretEditorDialog extends React.Component {
 
   render() {
     const children = [
-      epc('div', {key: 'title', className: 'dialog-title'}, this.props.title||'Secret Editor'),
-      epc('div', {key: 'content', className: 'dialog-content'},
+      epc('div', {key: 'title', className: 'dialog__title'}, this.props.title||'Secret Editor'),
+      epc('div', {key: 'content', className: 'dialog__content'},
         ep(SecretForm, {
           key: 'form',
           generator: true,

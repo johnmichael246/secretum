@@ -14,10 +14,28 @@
 
 /*global React*/
 
-import {ep, epc} from '../ui.js';
+import { ep, ec, epc } from '../ui.js';
 import { Button } from './button.js';
+import { Segment } from './segment.js';
 
 export class DataForm extends React.Component {
+	/**
+	 * The properties schema:
+	 * 1. title - title of the form
+	 * 2. nodes (*) - an array of nodes (or other arrays) describing the structure of the form
+	 * 3. validator - a function that validates the form
+	 * 4. record - an object representing the initial state of the form
+	 * 5. className - a BEM modifier to apply against the form's class
+	 * 6. onSubmit - a callback that that handles attempts to submit the form
+	 * 7. onCancel - a callback that handles attempts to cancel this action
+	 * 
+	 * If the nodes property is an array, then it's rendered in the array's order.
+	 * 
+	 * A node's schema:
+	 * 1. name (*) - the key in the record object
+	 * 2. type (*) - the type of this node
+	 * 3. label - the human-readable name of this node, validator?, className?
+	 */
 	constructor(props) {
 		super(props);
 		this.state = this._setup(props);
@@ -41,26 +59,32 @@ export class DataForm extends React.Component {
 		if(props.data instanceof Promise) {
 			promises.push(props.data.then(d => this.setState({data: d})));
 		}
-		props.fields.forEach((f,fi) => {
-			if(f.type === "select" && f.options instanceof Promise) {
-				// Chains with a promise of a function
-				// which inserts arrived options into the metadata
-				promises.push(f.options.then(o => {
-					var fields = new Object(this.state.fields);
-					fields[fi].options = o;
-					this.setState({fields: fields});
-				}));
-			}
-		});
+
+		const selectNodes = props.fields
+			.filterRecursively(field => field.type === 'select');
+
+		const updateOptions = (nodeName, newOptions) => {
+			var selectOptions = new Object(this.state.selectOptions);
+			selectOptions[nodeName] = newOptions;
+			this.setState({selectOptions: selectOptions});
+		};
+
+		selectNodes
+			.filter(node => node.options instanceof Promise)
+			.map(node => node.options.then(opts => updateOptions(node.name, opts)))
+			.pushTo(promises);
 
 		if(promises.length > 0) {
 			Promise.all(promises).then(()=>this.setState({loading: false}));
 		}
 
+		const selectOptions = selectNodes.buildLookup(field => field.name, field => field.options);
+
 		return {
 			loading: promises.length > 0,
 			data: props.data,
-			fields: props.fields
+			fields: props.fields,
+			selectOptions: selectOptions
 		};
 	}
 
@@ -92,8 +116,8 @@ export class DataForm extends React.Component {
 			props.disabled =  field.readOnly || false;
 		}
 
-		const label = epc("div", {key: "label", className: "label"}, field.label);
-		return epc("div", {key: field.name, className: "row"}, [label, ep("input", props)]);
+		const label = epc("div", {key: "label", className: "data-form__label"}, field.label);
+		return epc("div", {key: field.name, className: "data-form__field"}, [label, ep("input", props)]);
 	}
 
 	_buildSelectField(field) {
@@ -102,16 +126,19 @@ export class DataForm extends React.Component {
 
 		if(this.state.loading) {
 			options.push(epc("option", {key: "loading"}, "..."));
+			
 			props.value = "...";
 			props.disabled = "";
 		} else {
-			options.push(field.options.map(o => epc("option", {key: o.value, value: o.value}, o.label)));
+			options.push(this.state.selectOptions[field.name]
+				.map(o => epc("option", {key: o.value, value: o.value}, o.label)));
+
 			props.value = this.state.data[field.name];
 			props.disabled =  field.readOnly || false;
 		}
 
-		const label = epc("div", {key: "label", className: "label"}, field.label);
-		return epc("div", {key: field.name, className: "row"}, [label, epc("select", props, options)]);
+		const label = epc("div", {key: "label", className: "data-form__label"}, field.label);
+		return epc("div", {key: field.name, className: "data-form__field"}, [label, epc("select", props, options)]);
 	}
 
 	_buildTextAreaField(field) {
@@ -125,65 +152,88 @@ export class DataForm extends React.Component {
 			props.disabled =  field.readOnly || false;
 		}
 
-		const label = epc("div", {key: "label", className: "label"}, field.label);
-		return epc("div", {key: field.name, className: "row"}, [label, ep("textarea", props)]);
+		const label = epc("div", {key: "label", className: "data-form__label"}, field.label);
+		return epc("div", {key: field.name, className: "data-form__field"}, [label, ep("textarea", props)]);
 	}
 
 	render() {
-		// Form: title, [fields], validator?, record?, className?, onSubmit?, onCancel?
-		// Field: name, type, label, validator?, className?
 		const children = [];
 
 		if(this.props.title !== undefined) {
 			children.push(epc("h2",{key: "title", className: "title"},this.props.title));
 		}
 
-		if(this.props.topActions !== undefined) {
+		const buildActions = (actions, key) => {
 			const actionsBox = epc('div',
-				{key: 'top-actions', className: 'actions-box'},
-				this.props.topActions.map(a => ep(Button, {
-					key: a.label,
-					icon: a.icon,
-					label: a.label,
-					handler: () => {
-						this.setState({data: a.handler(Object(this.state.data))});
-					}
-				}))
+					{ key: 'actions-box', className: 'actions-box' },
+					actions.map(a => ep(Button, {
+						key: a.label,
+						icon: a.icon,
+						label: a.label,
+						handler: () => {
+							this.setState({data: a.handler(Object(this.state.data))});
+						}
+					}))
 			);
-			const label = ep('div', {key: 'label', className: 'label'});
-			const row = epc('div', {key: 'actions', className: 'row'}, [label, actionsBox]);
-			children.push(row);
+			const label = ep('div', {key: 'label', className: 'data-form__label'});
+			return epc('div', {key: key, className: 'data-form__field'}, [label, actionsBox]);
+		};
+
+		if(this.props.topActions !== undefined) {
+			children.push(buildActions(this.props.topActions, 'top-actions'));
 		}
 
-		for(let field of this.state.fields) {
-			var row;
-			if(field.type === "text" || field.type === 'password') {
-				row = this._buildTextField(field);
-			} else if(field.type === "select") {
-				row = this._buildSelectField(field);
-			} else if(field.type === "textarea") {
-				row = this._buildTextAreaField(field);
+		const buildNode = (node) => {
+			// A segment of nodes
+			if(node instanceof Array) {
+				return epc(Segment, {key: node.map(n=>n.name).join('_')}, node.map(buildNode));
 			}
 
-			children.push(row);
-		}
+			var result;
+			if(node.type === "text" || node.type === 'password') {
+				result = this._buildTextField(node);
+			} else if(node.type === "select") {
+				result = this._buildSelectField(node);
+			} else if(node.type === "textarea") {
+				result = this._buildTextAreaField(node);
+			}
 
+			return result;
+		};
+
+		children.push(epc(Segment, {key: 'fields'}, this.props.fields.map(buildNode)));
+
+		const bottomActions = [];
+	
 		if(this.props.onSubmit !== undefined) {
-			let buttonProps = {
-				key: "!submit", label: "Save", icon: 'check-square',
-				handler: this._onSubmit, disabled: this.state.loading
-			};
-			children.push(ep(Button, buttonProps));
+			bottomActions.push({
+				key: "!submit", 
+				label: "Save", 
+				icon: 'check-square',
+				handler: this._onSubmit, 
+				disabled: this.state.loading
+			});
 		}
 
 		if(this.props.onCancel !== undefined) {
-			let buttonProps = {
-				key: "!cancel", label: "Cancel", icon: 'times-rectangle',
-				handler: this._onCancel, disabled: this.state.loading
-			};
-			children.push(ep(Button, buttonProps));
+			bottomActions.push({
+				key: "!cancel", 
+				label: "Cancel", 
+				icon: 'times-rectangle',
+				handler: this._onCancel, 
+				disabled: this.state.loading
+			});
 		}
 
-		return epc("div", {className: `data-form ${this.props.className}`}, children)
+		if(bottomActions.length > 0) {
+			children.push(buildActions(bottomActions, 'bottom-actions'));
+		}
+
+		const classes = ['data-form'];
+		if(this.props.className !== undefined) {
+			classes.push('data-form--'+this.props.className);
+		}
+
+		return epc("div", {className: classes.join(' ')}, children);
 	}
 }

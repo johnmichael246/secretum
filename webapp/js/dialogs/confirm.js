@@ -23,8 +23,8 @@ export class ConfirmDialog extends React.Component {
   }
 
   render() {
-    const title = epc('div', {key: 'title', className: 'dialog-title'}, 'Confirm');
-    const content = epc('div', {key: 'content', className: 'dialog-content'}, [
+    const title = epc('div', {key: 'title', className: 'dialog__title'}, 'Confirm');
+    const content = epc('div', {key: 'content', className: 'dialog__content'}, [
       epc('div', {key: 'user-content'}, this.props.content),
       ep(Button, {key: 'yes', handler: this.props.onYes, label: 'Yes'}),
       ep(Button, {key: 'no', handler: this.props.onNo, label: 'No'}),

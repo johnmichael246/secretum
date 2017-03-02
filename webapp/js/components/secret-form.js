@@ -38,11 +38,11 @@ export class SecretForm extends React.Component {
 
 
 		const fields = [
-			{name: "id", type: "text", label: "ID", readOnly: true},
+			[{name: "id", type: "text", label: "ID", readOnly: true},
 			{name: "groupId", type: "select", label: "Group", options: groups, readOnly: readOnly},
 			{name: "resource", type: "text", label: "Resource", readOnly: readOnly},
 			{name: "principal", type: "text", label: "Principal", readOnly: readOnly},
-			{name: "password", type: "password", label: "Password", readOnly: readOnly},
+			{name: "password", type: "password", label: "Password", readOnly: readOnly}],
 			{name: "note", type: "textarea", label: "Note", readOnly: readOnly}
 		].filter(field => this.props.fields === undefined || this.props.fields.includes(field.name));
 
@@ -62,7 +62,7 @@ export class SecretForm extends React.Component {
 		} : this.context.store.getSecret(this.props.secretId);
 
 		const form = {
-			className: this.props.className||'' + ' secret-form',
+			className: 'secret-form',
 			title: this.props.title,
 			fields: fields,
 			data: secret,

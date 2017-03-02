@@ -23,85 +23,24 @@ import * as store from './store.js';
 
 import { Button } from './components/button.js';
 
-Object.values = function(obj) {
-	return Object.keys(obj).map(key => obj[key]);
-}
+import { boostArrays } from './utils/array.js';
+import { boostObjects } from './utils/object.js';
 
-Array.prototype.select = function(property) {
-	return Array.selector(property)(this);
-}
-
-Array.selector = function(property) {
-	return array => array.map(e => e[property]);
-}
-
-Array.prototype.flatten = function(levels=1) {
-	if(levels===0) return this;
-
-	const ret = [];
-
-	this.forEach(a => {
-		if(!Array.isArray(a)) throw new Error('The array is too shallow to flatten!');
-		Array.prototype.push.apply(ret,a.flatten(levels-1));
-	});
-
-	return ret;
-}
-
-Array.prototype.aggregate = function(aggregator) {
-	return Array.aggregator(aggregator)(this);
-}
-
-Array.aggregator = function(aggregator) {
-	return array => aggregator.apply(null, array);
-}
-
-Array.prototype.groupBy = function(property) {
-	const ret = {};
-	this.forEach(val => {
-		if(!val.hasOwnProperty(property)) throw new Error('Grouping by property with missing values for some elements!');
-
-		const key = val[property];
-		if(typeof key !== 'string') throw new Error('Grouping by property with non-string values in some elements!');
-
-		if(ret[key] === undefined) {
-			ret[key] = [val];
-		} else {
-			ret[key].push(val);
-		}
-	});
-
-	return ret;
-}
-
-Array.prototype.remove = function(predicate) {
-	this.forEach((value,idx) => {
-		if(predicate(value)) {
-			delete this[idx];
-		}
-	});
-};
-
-Object.defineProperty(Object.prototype, 'mapValues', {value: function(mapper) {
-	const ret = Object(this);
-	Object.keys(ret).forEach(key => ret[key] = mapper(ret[key]));
-	return ret;
-}});
+// Instrumenting global objects with custom improvements...
+// This will be called only once, when this script is loaded.
+boostArrays();
+boostObjects();
 
 class App extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {loading: true, route: {page: 'home'}};
+		this.state = {loading: true, page: 'home'};
 
 		store.load({endpoint: settings.service_url, idb_name: settings.idb_name}).then(store => {
 			this.store = store;
 			this.syncer = this.store;
 			this.setState({loading: false});
 		});
-	}
-
-	navigate(route) {
-		this.setState({route: route});
 	}
 
 	showModal(dialog, config) {
@@ -126,18 +65,18 @@ class App extends React.Component {
 			return epc('div', {className: 'loading'}, 'Application is loading...');
 		}
 
-		var rules = [
-			{page: 'home', component: HomePage},
-			{page: 'sync', component: SyncPage}
-		];
+		var pageComponents = {
+			home: HomePage,
+			sync: SyncPage
+		};
 
 		const tabs = [
 			ep(Button, {
-				key: 'home', label: 'Home', icon: 'home', toggled: this.state.route.page==='home',
-				handler: ()=>this.setState({route: {page: 'home'}})}),
+				key: 'home', label: 'Home', icon: 'home', toggled: this.state.page==='home',
+				handler: ()=>this.setState({page: 'home'})}),
 			ep(Button, {
-				key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.route.page==='sync',
-				handler: ()=>this.setState({route: {page: 'sync'}})})
+				key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.page==='sync',
+				handler: ()=>this.setState({page: 'sync'})})
 		];
 
 		const children = [
@@ -145,7 +84,7 @@ class App extends React.Component {
 				epc("div", {key: "title", className: "title"}, "Secretum"),
 				epc("div", {key: "version", className: "version"}, settings.build_version)
 			]),
-			ep(Router, {key: "router", className: "page", rules: rules, route: this.state.route, id: "router-main"}),
+			ep(Router, {key: "router", components: pageComponents, page: this.state.page, id: "router-main"}),
 			epc("div", {key: "footer", className: "footer"}, tabs)
 		];
 

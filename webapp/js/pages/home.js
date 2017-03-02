@@ -28,7 +28,7 @@ export class HomePage extends React.Component {
     super(props);
     this.context = context;
 
-    this.state = {secrets: this.context.store.findSecrets()};
+    this.state = {secrets: this.context.store.findSecrets(props.query)};
 
     this._onSearch = this._onSearch.bind(this);
     this._onCopy = this._onCopy.bind(this);
@@ -38,7 +38,7 @@ export class HomePage extends React.Component {
   }
 
   _onSearch(query) {
-    this.setState({query: query, secrets: this.context.store.findSecrets(query)});
+    this.props.onPageQuery(query);
   }
 
   _onCopy(secret) {
@@ -108,12 +108,32 @@ export class HomePage extends React.Component {
     });
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({secrets: this.context.store.findSecrets(nextProps.query)});
+  }
+
   render() {
     const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
     return epc("div", {className: "page page--home"}, [
-      ep(SecretsTable, {key: "table", secrets: this.state.secrets, actionHandlers: handlers}),
-      ep(Button, {key: '!new', className: 'new-secret', handler: this._onNew, label: 'New Secret', icon: 'plus-square'}),
-      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()})
+      ep(SecretsTable, {
+        key: "table", 
+        secrets: this.state.secrets, 
+        actionHandlers: handlers
+      }),
+      ep(Button, {
+        key: '!new', 
+        className: 'new-secret', 
+        handler: this._onNew, 
+        label: 'New Secret', 
+        icon: 'plus-square'
+      }),
+      ep(SearchTool, {
+        key: "search", 
+        onSubmit: this._onSearch, 
+        keyword: (this.props.query||{}).keyword, 
+        group: (this.props.query||{}).group, 
+        groups: this.context.store.findGroups()
+      })
     ]);
   }
 }

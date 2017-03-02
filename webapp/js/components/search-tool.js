@@ -49,8 +49,21 @@ export class SearchTool extends React.Component {
 		groups.unshift(epc("option", {key: 'undefined'}, 'All Groups'));
 
 		return epc("div", {className: "search"}, [
-			epc("select", {key: "group", name: "group", onChange: this._onChange, disabled: groups.length === 0}, groups),
-			ep("input", {key: "keyword", name: "keyword", type: "text", onChange: this._onChange, placeholder: "Enter a keyword"})
+			epc("select", {
+				key: "group", 
+				name: "group",
+				value: this.state.group,
+				onChange: this._onChange, 
+				disabled: groups.length === 0
+			}, groups),
+			ep("input", {
+				key: "keyword", 
+				name: "keyword", 
+				type: "text",
+				value: this.state.keyword||'',
+				onChange: this._onChange, 
+				placeholder: "Enter a keyword"
+			})
 		]);
 	}
 }

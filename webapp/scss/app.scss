@@ -73,11 +73,16 @@
 }
 
 @import
+  'layout/dialog';
+
+@import
   'pages/home',
   'pages/sync';
 
 @import
   'components/tables',
-  'components/buttons';
+  'components/buttons',
+  'components/data-form',
+  'components/actions-box';
 
 

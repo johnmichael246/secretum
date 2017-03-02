@@ -12,43 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.button {
-	/* space */
-	padding: 0.1em;
-	//font-size: 1.3em;
-	/* color */
-	border: 1px solid black;
-	background-color: #494949;
-	color: white;
-	box-shadow: 0px 0px 10px rgba(0,0,0,0.6);
-	/* mouse */
-	cursor: pointer;
-	/* layout */
-	display: flex;
-	flex-flow: row nowrap;
-	align-items: center;
-	width: 8em;
+import { epc } from '../ui.js';
 
-  @media (pointer: coarse) {
-    font-size: 1.6em;
-  }
-
-  &--toggled {
-		background-color: #71906f;
-		color: white;
-  }
-
-  &__icon {
-    margin-left: 0.3em;
-  }
-
-  &__label {
-    text-align: center;
-    flex-grow: 1;
-    margin-left: 0.3em;
-  }
-}
-
-.button--new-secret {
-	width: initial;
+export function ErrorBanner(props) {
+  return epc('div', {className: 'error-banner'}, props.message);
 }

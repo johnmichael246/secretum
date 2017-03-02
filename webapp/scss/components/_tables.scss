@@ -63,6 +63,9 @@
 
 .table__details {
   box-shadow: $inner-shadow;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
 }
 
 .table__row {
@@ -156,6 +159,15 @@
 .table--sync-status, .table--sync-changes {
   .table__header, .table__body {
     overflow-y: hidden;
+  }
+
+  .table__cell {
+    &--vault-id {
+      flex: 0 0 3ch;
+    }
+    &--last-sync {
+      flex-grow: 2;
+    }
   }
 }
 

@@ -20,26 +20,25 @@ export class Router extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = this._setup(props);
-
-    console.log(`New router (${props.id}) with ${props.rules.size} rules.`);
+    this.state = this._afterRoutePersistance(props.page, props.query)({persisted: {}});
+    this._onPageQuery = this._onPageQuery.bind(this);
   }
-
-  _setup(props) {
-    var current;
-    if(props.route === undefined) {
-      current = undefined;
-    } else {
-      current = props.rules.find(rule => rule.page === props.route.page).component;
+  
+  _afterRoutePersistance(page, query) {
+    return (state) => {
+      const persisted = Object.create(state.persisted);
+      persisted[page] = query;
+      return {persisted: persisted};
     }
-    return {current: current};
   }
 
-  componentWillReceiveProps(props) {
-    this.setState(this._setup(props));
+  _onPageQuery(query) {
+    this.setState(this._afterRoutePersistance(this.props.page, query));
   }
 
   render() {
-    return ep(this.state.current, {route: this.props.route});
+    const component = this.props.components[this.props.page];
+    const query = this.state.persisted[this.props.page];
+    return ep(component, {query: query, onPageQuery: this._onPageQuery});
   }
 }
