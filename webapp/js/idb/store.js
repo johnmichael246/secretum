@@ -48,56 +48,41 @@ export function load(config) {
 	}
 
 class Store {
-  constructor(config) {
-    this.config = config;
+  constructor(db) {
+    this.db = db;
   }
 
   findGroups() {
-    this._transaction(['groups'],{strategy: 'new'});
-    return Promise.resolve(this._storeGetAll('groups').then(Object.values));
+    return Promise.resolve(this.db.transaction('groups').objectStore('groups').getAll());
   }
 
   findSecrets(query) {
-    const match = (secret) => {
-      if(query === undefined) return true;
-
-      if(query.group !== undefined && secret.groupId !== query.group) {
-        return false;
-      }
-
-      if(query.keyword !== undefined) {
-        query.keyword = query.keyword.toLowerCase();
-        if(secret.resource.toLowerCase().search(query.keyword)==-1
-          && secret.principal.toLowerCase().search(query.keyword)==-1
-          && secret.note.toLowerCase().search(query.keyword)==-1) {
+    return co(function*() {
+      const match = (secret) => {
+        if (query === undefined) return true;
+      
+        if (query.group !== undefined && secret.groupId !== query.group) {
+          return false;
+        }
+      
+        if (query.keyword !== undefined) {
+          query.keyword = query.keyword.toLowerCase();
+          if (secret.resource.toLowerCase().search(query.keyword) == -1
+            && secret.principal.toLowerCase().search(query.keyword) == -1
+            && secret.note.toLowerCase().search(query.keyword) == -1) {
             return false;
           }
-      }
-      return true;
-    };
-
-    this._transaction(['secrets'],{strategy: 'new'});
-
-    return Promise.resolve(
-      this._storeGetAll('secrets')
-        .then(secrets => Object.values(secrets).filter(match))
-    );
+        }
+        return true;
+      };
+    
+      const secrets = yield this.db.transaction('secrets').objectStore('secrets').getAll();
+      return secrets.filter(match);
+    });
   }
-
+  
   saveSecret(newSecret) {
-    this._transaction(['meta','secrets'], {mode: 'readwrite', strategy: 'new'});
-    const stores = this._openStores(['meta','secrets'], 'readwrite');
-
-    const thenable = SyncThenable.all([
-      thenify(stores.secrets.get(newSecret.id)),
-      thenify(stores.meta.get('changes'))
-    ]).then(([oldSecret,changes]) => {
-      if(oldSecret === undefined) throw new Error(`Attempting to update a non-existing secret with ID ${newSecret.id}`);
-      changes.push({operator: 'update', table: 'secrets', record: newSecret});
-      return thenify(stores.meta.put(changes, 'changes'));
-    }).then(()=>thenify(stores.secrets.put(newSecret)));
-
-    return Promise.resolve(thenable);
+    return this.db.transaction('secrets', 'readwrite').objectStore('secrets').put(newSecret);
   }
 
   createSecret(secret) {
