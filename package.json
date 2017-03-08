@@ -12,10 +12,14 @@
     "react-dom": "^15.4.1"
   },
   "devDependencies": {
+    "browserify": "^14.1.0",
+    "co": "^4.6.0",
     "eslint": "^3.12.2",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^6.8.0",
+    "fake-indexeddb": "^1.0.11",
     "fs-extra": "^2.0.0",
+    "mocha": "^3.2.0",
     "node-sass": "^4.5.0",
     "nodemon": "^1.11.0",
     "promises-aplus-tests": "*",

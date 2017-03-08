@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export function boostArrays() {
-
+module.exports = function() {
   Array.prototype.buildLookup = function(keyGenerator, valueGenerator) {
     const ret = {};
 
@@ -43,7 +42,7 @@ export function boostArrays() {
     });
 
     return ret;
-  }
+  };
 
   Array.prototype.select = function(property) {
     return Array.selector(property)(this);

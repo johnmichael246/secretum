@@ -17,7 +17,9 @@
 // as soon as the promise is resolved/rejected. That is, neither as a micro-, nor a macro-task.
 // This is a violation of the specification's section 2.2.4, and results in 22/850 failed tests.
 
-export function SyncThenable(handler) {
+module.exports = SyncThenable;
+
+function SyncThenable(handler) {
   const self = {};
 
   var status = 'pending';
@@ -148,6 +150,8 @@ export function SyncThenable(handler) {
 
     return downstream;
   }
+
+  self.catch = (rejected) => self.then(undefined, rejected);
 
   return self;
 }

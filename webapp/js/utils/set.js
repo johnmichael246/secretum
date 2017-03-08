@@ -1,4 +1,4 @@
-// Copyright 2016-2017 Danylo Vashchilenko
+// Copyright 2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +13,15 @@
 // limitations under the License.
 
 module.exports = function() {
-  Object.values = function(obj) {
-    return Object.keys(obj).map(key => obj[key]);
+  Set.prototype.intersect = function(anotherSet) {
+    return new Set([...this].filter(value => anotherSet.has(value)));
+  };
+  
+  Set.prototype.difference = function(anotherSet) {
+    const difference = new Set(this);
+    for (let object of anotherSet) {
+      difference.delete(object);
+    }
+    return difference;
   }
-
-  Object.defineProperty(Object.prototype, 'mapValues', {value: function(mapper) {
-    const ret = Object(this);
-    Object.keys(ret).forEach(key => ret[key] = mapper(ret[key]));
-    return ret;
-  }});
-
-  Object.defineProperty(Object.prototype, 'assignFrom', {value: function(object) {
-    return Object.assign(this, object);
-  }});
-}
+};

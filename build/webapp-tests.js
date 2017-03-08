@@ -65,3 +65,20 @@ function runPromiseTests() {
         }
     }
 }
+
+process.stdout.write('Preparing versioned IDB tests...');
+rollup.rollup({
+    entry: './webapp/js-tests/versioned-idb.js'
+}).then(function(bundle) {
+    var result = bundle.generate({format: 'cjs'});
+    fs.writeFileSync('./tmp/tests/webapp/versioned-idb.jsb', result.code);
+    console.log('OK');
+    runVersionedIDBTests();
+}, error => {
+    console.error('Rollup failed!', error);
+    process.exit(1);
+});
+
+function runVersionedIDBTests() {
+    
+}
