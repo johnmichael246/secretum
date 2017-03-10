@@ -180,11 +180,11 @@ SyncThenable.all = function(array) {
 
 SyncThenable.resolve = function(value) {
   return SyncThenable((resolve)=>resolve(value));
-}
+};
 
 SyncThenable.reject = function(value) {
   return SyncThenable((resolve,reject)=>reject(value));
-}
+};
 
 function isHandler(value) {
   return value !== undefined 

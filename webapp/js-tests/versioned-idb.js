@@ -13,7 +13,9 @@
 // limitations under the License.
 
 const { versionedIDBFactory, MergeConflict } = require('../js/idb/versioned.js');
-const { thenify, co } = require('../js/idb/helpers.js');
+const { thenify } = require('../js/idb/helpers.js');
+const co = require('../js/utils/co.js');
+
 const assert = require('assert');
 const fdb = require('fake-indexeddb');
 
@@ -21,19 +23,10 @@ require('../js/utils/array.js')();
 require('../js/utils/object.js')();
 require('../js/utils/set.js')();
 
-
 const simple1 = {a: 'A', b: 'B'};
 const simple2 = {c: 'C', d: 'D'};
 
-const a = (operator, record, table='test') => ({
-  operator: operator,
-  table: table,
-  record: record
-});
-
-const i = (record, table) => a('insert', record, table);
-const u = (record, table) => a('update', record, table);
-const d = (record, table) => a('delete', record, table);
+const { i, u, d } = require('./helpers.js');
 
 describe("Versioned IndexedDB", function() {
   let db;
@@ -54,13 +47,13 @@ describe("Versioned IndexedDB", function() {
   });
 
   beforeEach(function(done) {
-    co(function* () {
+    co(function*() {
       const storeNames = ['test', '_changes'];
       const tx = db.transaction(storeNames, 'readwrite');
-  
+    
       yield storeNames.map(name => thenify(tx.objectStore(name).clear()));
       done();
-    }).catch(done);
+    });
   });
   
   describe("with 1 table", function(done) {
@@ -72,7 +65,7 @@ describe("Versioned IndexedDB", function() {
       
         const actual = yield db.transaction('_changes')
           .objectStore('_changes')
-          .getAll();
+          .toArray();
       
         const record1 = Object.assign({id: id}, simple1);
         const expected = [i(record1)];
@@ -97,11 +90,11 @@ describe("Versioned IndexedDB", function() {
       
         const actions = [i(record1), u(record2)];
       
-        const changes = yield db.transaction('_changes')
+        const actual = yield db.transaction('_changes')
           .objectStore('_changes')
-          .getAll();
+          .toArray();
       
-        assert.deepStrictEqual(changes, actions);
+        assert.deepStrictEqual(actual, actions);
         done();
       }).catch(done);
     });
@@ -118,7 +111,7 @@ describe("Versioned IndexedDB", function() {
     
         const actual = yield db.transaction('_changes')
           .objectStore('_changes')
-          .getAll();
+          .toArray();
     
         const record1 = Object.assign({id: id}, simple1);
         const expected = [i(record1), d(record1)];
@@ -141,7 +134,7 @@ describe("Versioned IndexedDB", function() {
         
         const actual = yield db.transaction('_changes')
           .objectStore('_changes')
-          .getAll();
+          .toArray();
         
         const record1 = Object.assign({id: id1}, simple1);
         const record2 = Object.assign({id: id2}, simple2);
@@ -178,7 +171,7 @@ describe("Versioned IndexedDB", function() {
         
         const actual = yield db.transaction('_changes')
           .objectStore('_changes')
-          .getAll();
+          .toArray();
         
         assert.deepStrictEqual(actual, expected);
         done();
@@ -186,7 +179,7 @@ describe("Versioned IndexedDB", function() {
     });
   });
   
-  describe('IDBDatabase.merge', function() {
+  describe('IDBDatabase#merge', function() {
     describe('shiftConflictingLocalIds', function() {
       const calculateRebase = versionedIDBFactory._testables.shiftConflictingLocalIds;
       const test = (local, remote, expected) => {
@@ -203,7 +196,7 @@ describe("Versioned IndexedDB", function() {
       it('all local inside of skipped remote',        test( [2,3],    [1,4],    {}          ));
     });
     
-    describe('resolveConflictingLInserts', function() {
+    describe('resolveConflictingInserts', function() {
       const resolveConflictingInserts = versionedIDBFactory._testables.resolveConflictingInserts;
       const test = (local, remote, expected) => {
         const idsMap = resolveConflictingInserts(local, remote);
@@ -215,35 +208,74 @@ describe("Versioned IndexedDB", function() {
       it('ignores updates on both sides',             test( [u({id:1}, 'table1')],  [u({id:1}, 'table1')],  []        ));
     });
     
-    const mergeChanges = versionedIDBFactory._testables.mergeChanges;
-    
-    it('discards matching removals', function() {
-      const local = [d({id:1})];
-      const remote = [d({id:1})];
-      
-      const merger = mergeChanges(local, remote);
-      
-      assert(merger.mergedRemote.length === 0);
-      assert(merger.mergedLocal.length === 0);
-    });
+    describe('mergeChanges', function() {
+      const mergeChanges = versionedIDBFactory._testables.mergeChanges;
   
-    it('remaps changes that conflict with remote inserts', function() {
-      const local = [i({id:1}), u({id:1}), d({id:1})];
+      it('discards matching removals', function() {
+        const local = [d({id:1})];
+        const remote = [d({id:1})];
+    
+        const merger = mergeChanges(local, remote);
+    
+        assert(merger.mergedRemote.length === 0);
+        assert(merger.mergedLocal.length === 0);
+      });
+  
+      it('remaps changes that conflict with remote inserts', function() {
+        const local = [i({id:1}), u({id:1}), d({id:1})];
+        const remote = [i({id:1})];
+    
+        const {mergedLocal} = mergeChanges(local, remote);
+    
+        const newLocalID = mergedLocal.select('record').select('id');
+        assert.equal(newLocalID.length, local.length);
+        assert.notEqual(newLocalID[0], remote[0].record.id);
+        assert(newLocalID.every(id => id === newLocalID[0]));
+      });
+  
+      it('fails on unresolved update conflict', function() {
+        const local = [u({id:1})];
+        const remote = [u({id:1})];
+    
+        assert.throws(() => mergeChanges(local, remote), MergeConflict);
+      });
+    });
+    
+    it('writes remote inserts', co.wrap(function* (done) {
       const remote = [i({id:1})];
-    
-      const {mergedLocal} = mergeChanges(local, remote);
-    
-      const newLocalID = mergedLocal.select('record').select('id');
-      assert.equal(newLocalID.length, local.length);
-      assert.notEqual(newLocalID[0], remote[0].record.id);
-      assert(newLocalID.every(id => id === newLocalID[0]));
-    });
+      
+      yield db.merge(remote);
+      
+      const tx = db.transaction('test');
+      const actual = yield tx.objectStore('test').toArray();
+      
+      assert.deepStrictEqual(actual, [{id:1}]);
+    }));
   
-    it('fails on unresolved update conflict', function() {
-      const local = [u({id:1})];
-      const remote = [u({id:1})];
+    it('writes remote updates', co.wrap(function* (done) {
+      let tx = db.transaction('test', 'readwrite');
+      yield tx.objectStore('test').add({id:1, old: true});
+      
+      const expected = {id:1, old: false};
+      const remote = [u(expected)];
+      yield db.merge(remote);
     
-      assert.throws(() => mergeChanges(local, remote), MergeConflict);
-    });
+      tx = db.transaction('test');
+      const actual = yield tx.objectStore('test').get(1);
+    
+      assert.deepStrictEqual(actual, expected);
+    }));
+  
+    it('writes remote deletes', co.wrap(function* (done) {
+      let tx = db.transaction('test', 'readwrite');
+      yield tx.objectStore('test').add({id:1});
+
+      yield db.merge([d({id:1})]);
+    
+      tx = db.transaction('test');
+      const actual = yield tx.objectStore('test').toArray();
+    
+      assert.deepStrictEqual(actual, []);
+    }));
   });
 });

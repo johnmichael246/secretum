@@ -19,7 +19,7 @@ import { SyncPage} from './pages/sync.js';
 
 import { e, ep, epc } from './ui.js';
 import { Router } from './router.js';
-import * as store from './store.js';
+import * as store from './idb/store.js';
 
 import { Button } from './components/button.js';
 

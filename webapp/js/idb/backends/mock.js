@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const SyncThenable = require('./sync-thenable.js');
-
-module.exports = { thenify };
-
-function thenify(request) {
-  const ret = SyncThenable();
-  request.onsuccess = () => ret.resolve(request.result);
-  request.onerror = () => ret.reject(request.error);
-  return ret;
+class Mock {
+  constructor(vault) {
+    this.vault = vault;
+  }
+  
+  fetch(lastId) {
+    const result = this.vault.snapshots.filter(commit => (lastId === undefined) || (commit.id > lastId));
+    
+    return Promise.resolve({
+      vault: this.vault.vault,
+      snapshots: result
+    });
+  }
 }
+
+module.exports = Mock;

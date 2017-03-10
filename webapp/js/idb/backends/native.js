@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const SyncThenable = require('./sync-thenable.js');
+require('isomorphic-fetch');
 
-module.exports = { thenify };
-
-function thenify(request) {
-  const ret = SyncThenable();
-  request.onsuccess = () => ret.resolve(request.result);
-  request.onerror = () => ret.reject(request.error);
-  return ret;
+class Native {
+  constructor({url, vaultId}) {
+    this.url = url;
+    this.vaultId = vaultId;
+  }
+  
+  fetch(lastId) {
+    const url = `${this.url}/fetch?vaultId=${this.vaultId}`+ (lastId === undefined ? '' : `sinceCommitId=${lastId}`);
+    return fetch(url).then(resp => resp.json()).then(result => result.snapshots);
+  }
 }
+
+module.exports = Native;

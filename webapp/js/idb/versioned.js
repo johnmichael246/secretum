@@ -13,7 +13,8 @@
 // limitations under the License.
 
 const SyncThenable = require('./sync-thenable.js');
-const { thenify, co } = require('./helpers.js');
+const { thenify } = require('./helpers.js');
+const co = require('../utils/co.js');
 
 class MergeConflict extends Error {
   constructor(localChange, remoteChange) {
@@ -50,7 +51,7 @@ function wrapRequest(request, resultWrapper) {
       wrappedRequest.result = resultWrapper(request.result);
     }
     
-    // Creating the store for metadata
+    // Creating the store for change logs
     event.target.result.createObjectStore('_changes', {autoIncrement: true});
     
     const wrappedEvent = Object.create(event, {result: {value: wrappedRequest.result}});
@@ -103,13 +104,16 @@ function wrapDatabase(database) {
   wrappedDatabase.merge = co.wrap(function* (unmergedRemote) {
     const tables = [...new Set(unmergedRemote.select('table')), '_changes'];
     const tx = database.transaction(tables, 'readwrite');
-    const stores = tables.map(name => tx.objectStore(name));
+    const stores = {};
+    for(let name of tables) {
+      stores[name] = tx.objectStore(name);
+    }
     
     // IDBRequests to be fulfilled before the merger is complete
     const work = [];
     
-    const unmergedLocal = yield getAllFrom(stores['_changes']);
-    const [mergedLocal, mergedRemote] = mergeChanges(unmergedLocal, unmergedRemote);
+    const unmergedLocal = Array.from((yield getAllFrom(stores['_changes'])).values());
+    const {mergedLocal, mergedRemote} = mergeChanges(unmergedLocal, unmergedRemote);
     
     work.push(stores['_changes'].clear());
     for(let change of mergedLocal) {
@@ -129,7 +133,7 @@ function wrapDatabase(database) {
     }
     
     yield work.map(thenify);
-  });
+  }, SyncThenable);
   
   return wrappedDatabase;
 }
@@ -157,9 +161,19 @@ function wrapObjectStore(objectStore) {
       {operator: 'insert', table: objectStore.name, record: finalRecord}
     );
     return id;
-  });
+  }, SyncThenable);
+  
+  wrappedObjectStore.get = function(id) {
+    return thenify(objectStore.get(id));
+  };
 
-  wrappedObjectStore.getAll = () => getAllFrom(objectStore);
+  wrappedObjectStore.toMap = function() {
+    return getAllFrom(objectStore);
+  };
+  
+  wrappedObjectStore.toArray = function() {
+    return getAllFrom(objectStore).then(map => Array.from(map.values()));
+  };
 
   wrappedObjectStore.put = co.wrap(function* (record, key) {
     const id = yield (thenify(objectStore.put(record, key)));
@@ -171,7 +185,7 @@ function wrapObjectStore(objectStore) {
     )));
     
     return id;
-  });
+  }, SyncThenable);
   
   wrappedObjectStore.delete = co.wrap(function* (key) {
     const record = yield thenify(objectStore.get(key));
@@ -182,21 +196,21 @@ function wrapObjectStore(objectStore) {
     yield thenify(changesStore.add(
       { operator: 'delete', table: objectStore.name, record: record }
     ));
-  });
+  }, SyncThenable);
   
   return wrappedObjectStore;
 }
 
 function getAllFrom(objectStore) {
   const thenable = SyncThenable();
-  const result = [];
+  const result = new Map();
   
   const request = objectStore.openCursor();
   request.onsuccess = (event) => {
     const cursor = event.target.result;
     
     if(cursor) {
-      result.push(cursor.value);
+      result.set(cursor.key, cursor.value);
       cursor.continue();
     } else {
       thenable.resolve(result);
