@@ -39,7 +39,7 @@ function load(config) {
       const db = openRequest.result;
       db.onerror = console.error;
       
-      config.schema = {
+      const localSchema = {
         secrets: {
           type: 'entity'
         },
@@ -56,22 +56,34 @@ function load(config) {
         }
       };
       
-      for(let name of Object.keys(config.schema)) {
-        let table = config.schema[name];
-        
-        let objectStore;
-        if(table.type === 'entity') {
-          objectStore = db.createObjectStore(name, {keyPath: 'id', autoIncrement: true});
-          for(let entity of table.initial) {
-            objectStore.add(entity);
-          }
-        } else if(table.type === 'map') {
-          objectStore = db.createObjectStore(name);
-          for(let key of Object.keys(table.initial)) {
-            objectStore.add(key, table.initial[key]);
-          }
-        }
+      buildDBSchema(db, localSchema);
+      if('schema' in config) {
+        buildDBSchema(db, config.schema);
       }
     }
   });
 }
+
+function buildDBSchema(db, schema) {
+  for(let name of Object.keys(schema)) {
+    let table = schema[name];
+    
+    let objectStore;
+    if(table.type === 'entity') {
+      objectStore = db.createObjectStore(name, {keyPath: 'id', autoIncrement: true});
+      
+      if('initial' in table) {
+        for (let entity of table.initial) {
+          objectStore.add(entity);
+        }
+      }
+      
+    } else if(table.type === 'map') {
+      objectStore = db.createObjectStore(name);
+      for(let key of Object.keys(table.initial)) {
+        objectStore.add(table.initial[key], key);
+      }
+    }
+  }
+}
+

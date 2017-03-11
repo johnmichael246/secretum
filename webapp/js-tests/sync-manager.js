@@ -33,11 +33,18 @@ describe('SyncManager', function() {
     ])
   };
   
+  const schema1 = {
+    test: {
+      type: 'entity'
+    }
+  };
+  
   it('should persist backend config', function(done) {
     co(function* () {
       const { syncManager } = yield load({
         idb_name: 'test',
-        indexedDBFactory: require('fake-indexeddb')
+        indexedDBFactory: require('fake-indexeddb'),
+        schema: schema1
       });
       
       yield syncManager.setup(mockBackend1);
@@ -51,7 +58,8 @@ describe('SyncManager', function() {
     co(function* () {
       const { syncManager, db } = yield load({
         idb_name: 'test',
-        indexedDBFactory: require('fake-indexeddb')
+        indexedDBFactory: require('fake-indexeddb'),
+        schema: schema1
       });
       
       yield syncManager.setup(mockBackend1);
