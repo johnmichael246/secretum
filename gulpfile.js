@@ -82,7 +82,7 @@ function copyStaticFiles() {
 }
 
 gulp.task('build-watch', ['build'], _ => {
-  browserifyBundle = watchify(browserify(opts));
+  browserifyBundle = watchify(browserify(browserifyOpts));
   return gulp.watch(['./webapp/js/**', './webapp/scss/**'], ['build' ]);
 });
 
