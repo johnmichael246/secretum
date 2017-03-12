@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const { ep, epc } = require('../ui.js');
 
-import {ep,epc} from '../ui.js';
-
-export class SearchTool extends React.Component {
+module.exports = class SearchTool extends React.Component {
 	constructor(props) {
 		super(props);
 		this._setup(props);
@@ -68,7 +67,7 @@ export class SearchTool extends React.Component {
 	}
 }
 
-SearchTool.propTypes = {
+module.exports.propTypes = {
 	keyword: React.PropTypes.string,
 	group: React.PropTypes.number,
 	groups: React.PropTypes.oneOfType([

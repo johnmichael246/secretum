@@ -2,9 +2,10 @@
   "name": "secretum",
   "version": "0.1.0-dev",
   "scripts": {
-    "build": "node ./build/webapp.js",
-    "build-watch": "nodemon --watch webapp/js --watch webapp/scss -e js,scss ./build/webapp.js",
-    "test": "node ./build/webapp-tests.js"
+    "clean": "gulp clean",
+    "build": "gulp build",
+    "build-watch": "gulp build-watch",
+    "test": "gulp test"
   },
   "dependencies": {
     "font-awesome": "^4.7.0",
@@ -12,18 +13,29 @@
     "react-dom": "^15.4.1"
   },
   "devDependencies": {
+    "bluebird": "^3.5.0",
     "browserify": "^14.1.0",
     "co": "^4.6.0",
     "eslint": "^3.12.2",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^6.8.0",
+    "event-stream": "^3.3.4",
     "fake-indexeddb": "^1.0.11",
     "fs-extra": "^2.0.0",
+    "gulp": "^3.9.1",
+    "gulp-changed": "^2.0.0",
+    "gulp-debug": "^3.1.0",
+    "gulp-mocha": "^4.1.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.4.1",
+    "gulp-util": "^3.0.8",
     "mocha": "^3.2.0",
     "node-sass": "^4.5.0",
     "nodemon": "^1.11.0",
     "promises-aplus-tests": "*",
     "rollup": "^0.38.0",
-    "sloc": "^0.1.11"
+    "sloc": "^0.1.11",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.9.0"
   }
 }

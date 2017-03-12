@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*global React*/
+const React = require('react');
+const { ep, epc } = require('../ui.js');
+const SearchTool = require('../components/search-tool.js');
+const SecretsTable = require('../components/secrets-table.js');
+const ConfirmDialog = require('../dialogs/confirm.js');
+const SecretEditorDialog = require('../dialogs/secret-editor.js');
+const SecretForm = require('../components/secret-form.js');
+const Button  = require('../components/button.js');
 
-import { ep, epc} from '../ui.js';
-import { SearchTool } from '../components/search-tool.js';
-import { SecretsTable } from '../components/secrets-table.js';
-import { ConfirmDialog } from '../dialogs/confirm.js';
-import { SecretEditorDialog } from '../dialogs/secret-editor.js';
-import { SecretForm } from '../components/secret-form.js';
-import { Button } from '../components/button.js';
-
-
-export class HomePage extends React.Component {
+module.exports = class HomePage extends React.Component {
   constructor(props, context) {
     super(props);
     this.context = context;
@@ -136,9 +134,9 @@ export class HomePage extends React.Component {
       })
     ]);
   }
-}
+};
 
-HomePage.contextTypes = {
+module.exports.contextTypes = {
   app: React.PropTypes.object,
   store: React.PropTypes.object
 };

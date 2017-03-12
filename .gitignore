@@ -1,7 +1,6 @@
 node_modules
-tmp
+dist
 .idea
 __pycache__
 db.sqlite3
 .vscode
-output

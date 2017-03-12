@@ -37,6 +37,14 @@ class SyncManager {
     return Promise.resolve(this.db.transaction('_sync').objectStore('_sync').toMap());
   }
   
+  getUnsyncedChanges() {
+    return Promise.resolve(this.db.transaction('_changes').objectStore('_changes').toArray());
+  }
+  
+  findRemoteVaults()  {
+    return Promise.resolve([]);
+  }
+  
   sync() {
     const self = this;
     return co(function* () {

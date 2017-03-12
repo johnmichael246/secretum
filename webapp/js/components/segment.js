@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { epc } from '../ui.js';
+module.exports = Segment;
 
-export function Segment(props) {
+const { epc } = require('../ui.js');
+
+function Segment(props) {
 	return epc('div', {className: 'segment'}, props.children);
 }

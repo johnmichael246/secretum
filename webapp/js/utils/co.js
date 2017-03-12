@@ -25,7 +25,7 @@ function co(fn, thenableFactory=Promise) {
     if (yielded.value instanceof Array) {
       return thenableFactory.all(yielded.value).then(newVals => process(newVals, gen));
     } else {
-      return yielded.value.then(newVal => process(newVal, gen));
+      return Promise.resolve(yielded.value.then(newVal => process(newVal, gen)));
     }
   };
   return process(undefined, gen);

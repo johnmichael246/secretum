@@ -1,19 +1,32 @@
-import {ep} from '../ui.js';
-import {DataForm} from './data-form.js';
+// Copyright 2017 Alex Lementa
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-export class GroupForm extends React.Component {
+const React = require('react');
+const { ep } = require('../ui.js');
+const DataForm = require('./data-form.js');
+
+module.exports = class GroupForm extends React.Component {
 	constructor(props) {
 		super(props);
 	}
 
 	render() {
-		const groups = this.context.store.findGroups().then(gs => gs.map(g => ({value: g.id, label: g.name})));
 		const readOnly = this.props.readOnly || false;
-
-
+    
 		const fields = [
 			{name: "id", type: "text", label: "ID", readOnly: true},
-			{name: "name", type: "textarea", label: "Group", readOnly: readOnly}
+			{name: "name", type: "textarea", label: "Name", readOnly: readOnly}
 		].filter(field => this.props.fields === undefined || this.props.fields.includes(field.name));
 
 		const actions = this.props.topActions||[];
@@ -34,8 +47,8 @@ export class GroupForm extends React.Component {
 		};
 		return ep(DataForm, form);
 	}
-}
+};
 
-GroupForm.contextTypes = {
+module.exports.contextTypes = {
   store: React.PropTypes.object
 };

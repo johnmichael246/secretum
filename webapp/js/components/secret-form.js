@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const { ep } = require('../ui.js');
+const DataForm = require('./data-form.js');
 
-import {ep} from '../ui.js';
-import {DataForm} from './data-form.js';
-
-export class SecretForm extends React.Component {
+module.exports = class SecretForm extends React.Component {
 	constructor(props) {
 		super(props);
 	}
 
 	_generatePassword(secret) {
 		const dict = 'abcdefghijklmopqrstuvwxyzABCDEFGIJKLMOPQRSTUVWXYZ0123456789!@#$%^&*()+*-~';
-		secret.password = Array(20).fill(0)
+		secret.password = Array(22).fill(0)
 			.map(Math.random)
 			.map(n => Math.floor(n/(1/dict.length)))
 			.map(n => dict[n])
@@ -55,7 +54,7 @@ export class SecretForm extends React.Component {
 		const secret = this.props.secretId === null ? {
 			id: '',
 			resource: '',
-			groupId: 1,
+			groupId: 0,
 			principal: '',
 			password: '',
 			note: ''
@@ -72,8 +71,8 @@ export class SecretForm extends React.Component {
 		};
 		return ep(DataForm, form);
 	}
-}
+};
 
-SecretForm.contextTypes = {
+module.exports.contextTypes = {
   store: React.PropTypes.object
 };

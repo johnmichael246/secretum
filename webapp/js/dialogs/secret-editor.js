@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const SecretForm = require('../components/secret-form.js');
+const { ep, epc } = require('../ui.js');
 
-import { SecretForm } from '../components/secret-form.js';
-import { ep, epc } from '../ui.js';
-
-export class SecretEditorDialog extends React.Component {
+module.exports = class SecretEditorDialog extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -37,9 +36,9 @@ export class SecretEditorDialog extends React.Component {
     ];
     return epc('div', {className: 'dialog'}, children);
   }
-}
+};
 
-SecretEditorDialog.contextTypes = {
+module.exports.contextTypes = {
   app: React.PropTypes.object,
   store: React.PropTypes.object
-}
+};

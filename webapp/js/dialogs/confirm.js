@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const { ep, epc } = require('../ui.js');
+const Button = require('../components/button.js');
 
-import { ep, epc } from '../ui.js';
-import { Button } from '../components/button.js';
-
-export class ConfirmDialog extends React.Component {
+module.exports = class ConfirmDialog extends React.Component {
   constructor(props){
     super(props);
   }

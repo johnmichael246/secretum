@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export function camelToDash(camel) {
+module.exports = { camelToDash };
+
+function camelToDash(camel) {
   return camel.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }

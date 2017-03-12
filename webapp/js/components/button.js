@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ep, epc } from '../ui.js';
+module.exports = Button;
 
-export function Button(props) {
+const { ep, epc } = require('../ui.js');
+
+function Button(props) {
 	const icon = ep('div', {key: 'icon', className: `button__icon fa fa-${props.icon}`});
 	const label = epc('div', {key: 'label', className: 'button__label'}, props.label);
 

@@ -56,6 +56,26 @@ describe("Versioned IndexedDB", function() {
     });
   });
   
+  describe('IDBObjectStore', function() {
+    it('#toArray returns a key-ordered array of all records', function(done) {
+      co(function*() {
+        const store = db.transaction('test', 'readwrite').objectStore('test');
+        const [id1, id2] = yield ([simple1,simple2].map(entity => store.add(entity)));
+      
+        const actual = yield db.transaction('test')
+          .objectStore('test')
+          .toArray();
+      
+        const record1 = Object.assign({id: id1}, simple1);
+        const record2 = Object.assign({id: id2}, simple2);
+        const expected = [record1, record2];
+      
+        assert.deepStrictEqual(actual, expected);
+        done();
+      }).catch(done);
+    });
+  });
+  
   describe("with 1 table", function(done) {
     it('#add should log an insert action', function (done) {
       co(function*() {

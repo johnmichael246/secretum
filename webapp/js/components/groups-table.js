@@ -1,6 +1,22 @@
-import { ep, epc, ec } from '../ui.js';
-import { DataTable } from './data-table.js';
-import { GroupForm } from './group-form.js';
+// Copyright 2017 Alex Lementa
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+module.exports = GroupsTable;
+
+const { ep, epc, ec } = require('../ui.js');
+const DataTable = require('./data-table.js');
+const GroupForm = require('./group-form.js');
 
 function GroupToolbox(props) {
   const handlers = props.actionHandlers;
@@ -25,7 +41,7 @@ function merge(a1, a2) {
   return a1.map((a,i) => Object.assign(a,a2[i]));
 }
 
-export function GroupsTable(props, context) {
+function GroupsTable(props) {
   const transform = groups => {
     const actions = groups.map(g => ({
       actions: ep(GroupToolbox, {group: g, actionHandlers: props.actionHandlers})
@@ -47,19 +63,13 @@ export function GroupsTable(props, context) {
     });
   };
 
-  var data;
-  if(props.groups instanceof Promise) {
-    data = props.groups.then(g => transform(g));
-  } else {
-    data = transform(props.groups);
-  }
-  
+  const data = props.groups instanceof Promise ?  props.groups.then(transform) : transform(props.groups);
   const columns = {id: 'ID', name: 'Group', actions: 'Actions'};
   
   return ep(DataTable, {
-    className: "secrets",
+    className: "groups",
     columns: columns,
-    data: props.groups,
+    data: data,
     detailsFactory: props.details === undefined || props.details ? detailsFactory : undefined
   });
 }

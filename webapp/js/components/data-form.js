@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*global React*/
+const React = require('react');
+const { ep, epc } = require('../ui.js');
+const Button = require('./button.js');
+const Segment = require('./segment.js');
 
-import { ep, ec, epc } from '../ui.js';
-import { Button } from './button.js';
-import { Segment } from './segment.js';
-
-export class DataForm extends React.Component {
+module.exports = class DataForm extends React.Component {
 	/**
 	 * The properties schema:
 	 * 1. title - title of the form
@@ -236,4 +235,4 @@ export class DataForm extends React.Component {
 
 		return epc("div", {className: classes.join(' ')}, children);
 	}
-}
+};

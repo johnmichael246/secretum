@@ -12,105 +12,117 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React ReactDOM settings */
+/* global settings */
 
-import { HomePage } from './pages/home.js';
-import { SyncPage} from './pages/sync.js';
+const React = require('react');
+const ReactDOM = require('react-dom');
+const HomePage = require('./pages/home.js');
+const GroupsPage = require('./pages/groups.js');
+const SyncPage = require('./pages/sync.js');
 
-import { e, ep, epc } from './ui.js';
-import { Router } from './router.js';
-import * as store from './idb/store.js';
+const {e, ep, epc} = require('./ui.js');
+const Router = require('./router.js');
 
-import { Button } from './components/button.js';
-
-import { boostArrays } from './utils/array.js';
-import { boostObjects } from './utils/object.js';
+const {load} = require('./idb/loader.js');
+const Button = require('./components/button.js');
 
 // Instrumenting global objects with custom improvements...
 // This will be called only once, when this script is loaded.
-boostArrays();
-boostObjects();
+require('../js/utils/array.js')();
+require('../js/utils/object.js')();
+require('../js/utils/set.js')();
 
 class App extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {loading: true, page: 'home'};
-
-		store.load({endpoint: settings.service_url, idb_name: settings.idb_name}).then(store => {
-			this.store = store;
-			this.syncer = this.store;
-			this.setState({loading: false});
-		});
-	}
-
-	showModal(dialog, config) {
-		this.setState({modal: ep(dialog, config)})
-	}
-
-	hideModal() {
-		this.setState({modal: undefined});
-	}
-
-	getChildContext() {
-		if(this.state.loading) {
-			return {};
-		} else {
-			// Must not be used before the loading is finished
-			return {app: this, store: this.store, syncer: this.syncer};
-		}
-	}
-
-	render() {
-		if(this.state.loading) {
-			return epc('div', {className: 'loading'}, 'Application is loading...');
-		}
-
-		var pageComponents = {
-			home: HomePage,
-			sync: SyncPage
-		};
-
-		const tabs = [
-			ep(Button, {
-				key: 'home', label: 'Home', icon: 'home', toggled: this.state.page==='home',
-				handler: ()=>this.setState({page: 'home'})}),
-			ep(Button, {
-				key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.page==='sync',
-				handler: ()=>this.setState({page: 'sync'})})
-		];
-
-		const children = [
-			epc("div", {key: "header", className: "header"}, [
-				epc("div", {key: "title", className: "title"}, "Secretum"),
-				epc("div", {key: "version", className: "version"}, settings.build_version)
-			]),
-			ep(Router, {key: "router", components: pageComponents, page: this.state.page, id: "router-main"}),
-			epc("div", {key: "footer", className: "footer"}, tabs)
-		];
-
-		if(this.state.modal !== undefined) {
-			children.push(epc('div', {key: 'modal', className: 'modal'}, this.state.modal));
-		}
-
-		return epc("div", {className: "app"}, children);
-	}
+  constructor(props) {
+    super(props);
+    this.state = {loading: true, page: 'home'};
+    
+    load({
+      endpoint: settings.service_url,
+      idb_name: settings.idb_name,
+      indexedDBFactory: window.indexedDB
+    }).then(facades => {
+      this.store = facades.store;
+      this.syncer = facades.syncManager;
+      this.setState({loading: false});
+    });
+  }
+  
+  showModal(dialog, config) {
+    this.setState({modal: ep(dialog, config)})
+  }
+  
+  hideModal() {
+    this.setState({modal: undefined});
+  }
+  
+  getChildContext() {
+    if (this.state.loading) {
+      return {};
+    } else {
+      // Must not be used before the loading is finished
+      return {app: this, store: this.store, syncer: this.syncer};
+    }
+  }
+  
+  render() {
+    if (this.state.loading) {
+      return epc('div', {className: 'loading'}, 'Application is loading...');
+    }
+    
+    var pageComponents = {
+      home: HomePage,
+      groups: GroupsPage,
+      sync: SyncPage
+    };
+    
+    const tabs = [
+      ep(Button, {
+        key: 'home', label: 'Secrets', icon: 'home', toggled: this.state.page === 'home',
+        handler: () => this.setState({page: 'home'})
+      }),
+      ep(Button, {
+        key: 'groups', label: 'Groups', icon: 'home', toggled: this.state.page === 'groups',
+        handler: () => this.setState({page: 'groups'})
+      }),
+      ep(Button, {
+        key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.page === 'sync',
+        handler: () => this.setState({page: 'sync'})
+      })
+    ];
+    
+    const children = [
+      epc("div", {key: "header", className: "header"}, [
+        epc("div", {key: "title", className: "title"}, "Secretum"),
+        epc("div", {key: "version", className: "version"}, settings.build_version)
+      ]),
+      ep(Router, {key: "router", components: pageComponents, page: this.state.page, id: "router-main"}),
+      epc("div", {key: "footer", className: "footer"}, tabs)
+    ];
+    
+    if (this.state.modal !== undefined) {
+      children.push(epc('div', {key: 'modal', className: 'modal'}, this.state.modal));
+    }
+    
+    return epc("div", {className: "app"}, children);
+  }
 }
 
 App.childContextTypes = {
-	app: React.PropTypes.object,
-	store: React.PropTypes.object,
-	syncer: React.PropTypes.object
+  app: React.PropTypes.object,
+  store: React.PropTypes.object,
+  syncer: React.PropTypes.object
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-	//overscroll(document.querySelector('#root'));
-	// document.body.addEventListener('touchmove', function(evt) {
-	// 	if(evt._isScroller !== undefined && !evt._isScroller) {
-	// 		evt.preventDefault();
-	// 		alert(evt.target.className);
-	// 	}
-	// });
-	ReactDOM.render(e(App), document.getElementById("root"));
+document.addEventListener("DOMContentLoaded", function () {
+  //overscroll(document.querySelector('#root'));
+  // document.body.addEventListener('touchmove', function(evt) {
+  // 	if(evt._isScroller !== undefined && !evt._isScroller) {
+  // 		evt.preventDefault();
+  // 		alert(evt.target.className);
+  // 	}
+  // });
+  ReactDOM.render(e(App), document.getElementById("root"));
 });
 
 // var overscroll = function(el) {

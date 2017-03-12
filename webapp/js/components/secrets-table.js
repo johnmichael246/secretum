@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+module.exports = SecretsTable;
 
-import { ep, epc, ec } from '../ui.js';
-import { DataTable } from './data-table.js';
-import { SecretForm } from './secret-form.js';
+const React = require('react');
+const { ep, epc, ec } = require('../ui.js');
+const DataTable = require('./data-table.js');
+const SecretForm = require('./secret-form.js');
 
 function SecretToolbox(props) {
   const handlers = props.actionHandlers;
@@ -47,7 +48,7 @@ function merge(a1, a2) {
   return a1.map((a,i) => Object.assign(a,a2[i]));
 }
 
-export function SecretsTable(props, context) {
+function SecretsTable(props, context) {
   const transform = secrets => {
     const actions = secrets.map(s => ({
       actions: ep(SecretToolbox, {secret: s, actionHandlers: props.actionHandlers})

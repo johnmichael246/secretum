@@ -15,7 +15,7 @@ ROOT_URLCONF = 'devsite.urls'
 
 # Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = ['./tmp/static', '.']
+STATICFILES_DIRS = ['./dist', '.']
 
 # Secretum-specific settings
 IDB_NAME = 'secretum_dev'

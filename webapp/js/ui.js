@@ -12,24 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
 
-export function epc(elem, props, children) {
+module.exports = { e, ep, ec, epc };
+
+function epc(elem, props, children) {
 	if(props === undefined) throw new Error("Missing props argument");
 	if(children === undefined) throw new Error("Missing children argument");
 	return React.createElement(elem, props, children);
 }
 
-export function ep(elem, props) {
+function ep(elem, props) {
 	if(props === undefined) throw new Error("Missing props argument");
 	return React.createElement(elem, props, null);
 }
 
-export function ec(elem, children) {
+function ec(elem, children) {
 	if(children === undefined) throw new Error("Missing children argument");
 	return React.createElement(elem, null, children);
 }
 
-export function e(elem) {
+function e(elem) {
 	return React.createElement(elem, null, null);
 }

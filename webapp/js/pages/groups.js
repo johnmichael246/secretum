@@ -1,18 +1,31 @@
-import { ep, epc} from '../ui.js';
-import { GroupsTable } from '../components/groups-table.js';
-import { GroupEditorDialog } from '../dialogs/group-editor.js';
-import { Button } from '../components/button.js';
-import { SearchTool } from '../components/search-tool.js';
-import { ConfirmDialog } from '../dialogs/confirm.js';
-import { GroupForm } from '../components/group-form.js';
+// Copyright 2017 Alex Lementa
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-export class GroupPage extends React.Component {
+const React = require('react');
+const { ep, epc } = require('../ui.js');
+const GroupsTable = require('../components/groups-table.js');
+const GroupEditorDialog = require('../dialogs/group-editor.js');
+const Button = require('../components/button.js');
+const ConfirmDialog = require('../dialogs/confirm.js');
+const GroupForm = require('../components/group-form.js');
+
+module.exports = class GroupPage extends React.Component {
   constructor(props, context) {
     super(props);
     this.context = context;
-    this.state = {groups: this.context.store.findGroups()};
+    this.state = { groups: this.context.store.findGroups() };
     this._onNew = this._onNew.bind(this);
-    this._onSearch = this._onSearch.bind(this);
     this._onEdit = this._onEdit.bind(this);
     this._onRemove = this._onRemove.bind(this);
   }
@@ -68,24 +81,16 @@ export class GroupPage extends React.Component {
     });
   }
 
-  _onSearch(query) {
-    var a = {};//toDo
-    var promise = Promise.resolve("works");
-    var groups = this.context.store.findGroupsByQuery(query);
-    this.setState({query: query, groups: groups});
-  }
-  
   render() {
     const handlers = {onEdit: this._onEdit, onRemove: this._onRemove};
-    return epc("div", {className: "page home"}, [
+    return epc("div", {className: "page page--groups"}, [
       ep(GroupsTable, {key: "table", groups: this.state.groups, actionHandlers: handlers}),
-      ep(Button, {key: "!new", handler: this._onNew, label: "New Group", icon: 'plus-square'}),
-      ep(SearchTool, {key: "search", onSubmit: this._onSearch, groups: this.context.store.findGroups()})
+      ep(Button, {key: "!new", className: 'new-group', handler: this._onNew, label: "New Group", icon: 'plus-square'})
     ]);
   }
-}
+};
 
-GroupPage.contextTypes = {
+module.exports.contextTypes = {
   app: React.PropTypes.object,
   store: React.PropTypes.object
 };

@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const { ep } = require('./ui.js');
 
-import { ep } from './ui.js';
-
-export class Router extends React.Component {
+module.exports = class Router extends React.Component {
   constructor(props) {
     super(props);
 

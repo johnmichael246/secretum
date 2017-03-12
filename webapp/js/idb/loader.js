@@ -24,7 +24,7 @@ function load(config) {
     
     openRequest.onsuccess = () => {
       const db = openRequest.result;
-      db.onerror = console.error;
+      db.onerror = console.error.bind(console);
       
       const store = new Store(db);
       const syncManager = new SyncManager(db);

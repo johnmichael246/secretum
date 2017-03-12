@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global React */
+const React = require('react');
+const { ep, epc } = require('../ui.js');
+const Button = require('../components/button.js');
+const DataTable = require('../components/data-table.js');
+const ConfirmDialog = require('../dialogs/confirm.js');
 
-import { ep, epc } from '../ui.js';
-import { Button } from '../components/button.js';
-import { DataTable } from '../components/data-table.js';
-import { ConfirmDialog } from '../dialogs/confirm.js';
-
-export class SyncPage extends React.Component {
+module.exports = class SyncPage extends React.Component {
   constructor(props, context) {
     super(props);
     this.context = context;
@@ -176,9 +175,9 @@ export class SyncPage extends React.Component {
         this.context.syncer.getUnsyncedChanges()
       ])).then(([status, changes]) => this.setState({syncing: false, status: status, changes: changes}));
   }
-}
+};
 
-SyncPage.contextTypes = {
+module.exports.contextTypes = {
   syncer: React.PropTypes.object,
   store: React.PropTypes.object,
   app: React.PropTypes.object

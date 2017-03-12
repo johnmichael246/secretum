@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {SyncThenable} from '../js/sync-thenable.js';
+const SyncThenable = require('../js/idb/sync-thenable.js');
 
 module.exports = {
     deferred: function() {

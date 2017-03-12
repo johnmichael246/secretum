@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*global React*/
+const React = require('react');
+const { epc } = require('../ui.js');
+const { camelToDash } = require('../utils.js');
 
-import { epc } from '../ui.js';
-
-import { camelToDash } from '../utils.js';
-
-export class DataTable extends React.Component {
+module.exports = class DataTable extends React.Component {
 	/*
 	 * The properties schema:
 	 * 1. data (*) - an array (or a promise) of records to show in this table.
@@ -118,4 +116,4 @@ export class DataTable extends React.Component {
 
 		return epc("div", {className: `table table--${camelToDash(this.props.className)}`}, children);
 	}
-}
+};

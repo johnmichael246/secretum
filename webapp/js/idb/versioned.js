@@ -83,13 +83,15 @@ function wrapRequest(request, resultWrapper) {
 }
 
 function wrapDatabase(database) {
-  const wrappedDatabase = Object.create(database);
+  const wrappedDatabase = Object.create(database, {onerror: {value: null}});
   
-  wrappedDatabase.transaction = (storeNames, mode) => {
+  wrappedDatabase.transaction = (storeNames, mode='readonly') => {
+    //console.log(`New transaction: stores=${storeNames}, mode=${mode}`);
+    
     if(mode === 'readwrite') {
-      if(!(storeNames instanceof Array)) {
+      if (!(storeNames instanceof Array)) {
         storeNames = [storeNames, '_changes'];
-      } else if(!storeNames.includes('_changes')) {
+      } else if (!storeNames.includes('_changes')) {
         storeNames = [...storeNames, '_changes'];
       }
     }
@@ -157,9 +159,11 @@ function wrapObjectStore(objectStore) {
     
     const finalRecord = Object.assign({}, record, {id: id});
     const changesStore = objectStore.transaction.objectStore('_changes');
-    const changeRequest = changesStore.add(
-      {operator: 'insert', table: objectStore.name, record: finalRecord}
-    );
+    
+    yield thenify(changesStore.add(
+      { operator: 'insert', table: objectStore.name, record: finalRecord }
+    ));
+    
     return id;
   }, SyncThenable);
   
@@ -267,7 +271,7 @@ function resolveConflictingInserts(unmergedLocal, unmergedRemote) {
   return idMaps;
 }
 
-function mergeChanges(unmergedLocal, unmergedRemote, resolutions) {
+function mergeChanges(unmergedLocal, unmergedRemote) {
   const mergedLocal = [];
   const discardedRemote = [];
   
