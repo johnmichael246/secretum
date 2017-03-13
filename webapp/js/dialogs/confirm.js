@@ -12,22 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const React = require('react');
-const { ep, epc } = require('../ui.js');
-const Button = require('../components/button.js');
+const { epc } = require('../ui.js');
+const ActionsBox = require('../components/actions-box.jsx');
 
-module.exports = class ConfirmDialog extends React.Component {
-  constructor(props){
-    super(props);
-  }
-
-  render() {
-    const title = epc('div', {key: 'title', className: 'dialog__title'}, 'Confirm');
-    const content = epc('div', {key: 'content', className: 'dialog__content'}, [
-      epc('div', {key: 'user-content'}, this.props.content),
-      ep(Button, {key: 'yes', handler: this.props.onYes, label: 'Yes'}),
-      ep(Button, {key: 'no', handler: this.props.onNo, label: 'No'}),
-    ]);
-    return epc('div', {className: 'dialog'}, [title, content]);
-  }
+function ConfirmDialog(props) {
+  const title = epc('div', {key: 'title', className: 'dialog__title'}, 'Confirm');
+  const content = epc('div', {key: 'content', className: 'dialog__content'}, [
+    epc('div', {key: 'user-content'}, props.content),
+    epc(ActionsBox, {key: 'actions-box'}, [{handler: props.onYes, label: 'Yes'}, {handler: props.onNo, label: 'No'}]),
+  ]);
+  return epc('div', {className: 'dialog'}, [title, content]);
 }
+
+module.exports = ConfirmDialog;

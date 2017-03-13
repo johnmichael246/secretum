@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const React = require('react');
+/* global React */
 const GroupForm = require('../components/group-form.js');
 const { ep, epc } = require('../ui.js');
 

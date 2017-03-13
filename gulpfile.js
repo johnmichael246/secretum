@@ -20,9 +20,12 @@ gulp.util = require('gulp-util');
 gulp.source = require('vinyl-source-stream');
 gulp.sourcemaps = require('gulp-sourcemaps');
 gulp.mocha = require('gulp-mocha');
+gulp.buffer = require('vinyl-buffer');
+gulp.flowtype = require('gulp-flowtype');
 
 const browserify = require('browserify');
 const watchify = require('watchify');
+const babelify = require('babelify');
 
 const fs = require('bluebird').promisifyAll(require('fs-extra'));
 const path = require('path');
@@ -55,14 +58,25 @@ let browserifyBundle = browserify(browserifyOpts);
 browserifyBundle.on('log', console.log);
 
 function bundleJS() {
-  return browserifyBundle.bundle()
+  return browserifyBundle
+    .transform(babelify, {presets: ['react']})
+    .bundle()
     .on('error', err => gulp.util.log('Browserify Error', err))
     .pipe(gulp.source('bundle.js'))
+    .pipe(gulp.buffer())
+    .pipe(gulp.sourcemaps.init({ loadMaps: true }))
+    .pipe(gulp.sourcemaps.write('./'))
     .pipe(gulp.dest(path.join(DEST, 'js')));
 }
 
 function vendor() {
   return es.merge([
+    gulp.src('./node_modules/react/dist/react.js')
+      .pipe(gulp.changed(path.join(DEST, 'js')))
+      .pipe(gulp.dest(path.join(DEST, 'js'))),
+    gulp.src('./node_modules/react-dom/dist/react-dom.js')
+      .pipe(gulp.changed(path.join(DEST, 'js')))
+      .pipe(gulp.dest(path.join(DEST, 'js'))),
     gulp.src('./node_modules/font-awesome/css/font-awesome.min.css')
       .pipe(gulp.changed(path.join(DEST, 'css')))
       .pipe(gulp.dest(path.join(DEST, 'css'))),
@@ -90,7 +104,12 @@ gulp.task('build', _ => {
   return es.merge([vendor(), copyStaticFiles(), bundleJS(), compileSass()]).pipe(gulp.debug());
 });
 
-gulp.task('test', ['test-promises', 'test-eslint', 'test-mocha']);
+gulp.task('test', ['test-promises', 'test-eslint', 'test-mocha', 'test-flow']);
+
+gulp.task('test-flow', _ => {
+  return gulp.src('./webapp/js/**')
+    .pipe(gulp.flowtype());
+});
 
 gulp.task('test-mocha', _ => {
   return gulp.src('./webapp/js-tests/versioned-idb.js')

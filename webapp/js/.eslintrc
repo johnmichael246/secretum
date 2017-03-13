@@ -1,11 +1,12 @@
 {
-  "extends": ["eslint:recommended"],
+  "parse": "babel-eslint",
+  "extends": ["eslint:recommended", "plugin:flowtype/recommended"],
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "script",
     "ecmaFeatures": {
       "impliedStrict": true,
-      "jsx": false
+      "jsx": true
     }
   },
   "env": {
@@ -13,8 +14,9 @@
     "es6": true,
     "commonjs": true
   },
-  "plugins": [],
+  "plugins": ["flowtype"],
   "rules": {
-    "no-console": "off"
+    "no-console": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   }
 }

@@ -13,18 +13,24 @@
     "react-dom": "^15.4.1"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "babel-preset-react": "^6.23.0",
+    "babelify": "^7.3.0",
     "bluebird": "^3.5.0",
     "browserify": "^14.1.0",
     "co": "^4.6.0",
     "eslint": "^3.12.2",
+    "eslint-plugin-flowtype": "^2.30.3",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^6.8.0",
     "event-stream": "^3.3.4",
     "fake-indexeddb": "^1.0.11",
+    "flow-bin": "^0.41.0",
     "fs-extra": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-changed": "^2.0.0",
     "gulp-debug": "^3.1.0",
+    "gulp-flowtype": "^1.0.0",
     "gulp-mocha": "^4.1.0",
     "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.4.1",
@@ -35,6 +41,7 @@
     "promises-aplus-tests": "*",
     "rollup": "^0.38.0",
     "sloc": "^0.1.11",
+    "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0"
   }

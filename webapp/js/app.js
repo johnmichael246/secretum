@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* global settings */
+/* global settings React ReactDOM */
 
-const React = require('react');
-const ReactDOM = require('react-dom');
+const Redux = require('redux');
+
 const HomePage = require('./pages/home.js');
 const GroupsPage = require('./pages/groups.js');
 const SyncPage = require('./pages/sync.js');
 
-const {e, ep, epc} = require('./ui.js');
-const Router = require('./router.js');
-
-const {load} = require('./idb/loader.js');
+const { e, ep, epc } = require('./ui.js');
+const { load } = require('./idb/loader.js');
 const Button = require('./components/button.js');
+const actions = require('./actions.js');
 
 // Instrumenting global objects with custom improvements...
 // This will be called only once, when this script is loaded.
@@ -32,10 +31,60 @@ require('../js/utils/array.js')();
 require('../js/utils/object.js')();
 require('../js/utils/set.js')();
 
+const initialState = {
+  booted: false
+};
+
+function boot(opts) {
+  return {
+    type: actions.BOOT,
+    opts
+  };
+}
+
+function navigate(page) {
+  return {
+    type: actions.NAVIGATE,
+    page: page
+  };
+}
+
+function rootReducer(state = initialState, action) {
+  console.log(action);
+  
+  let newState = Object.assign({}, state);
+  
+  if(action.type === actions.NAVIGATE) {
+    newState.page = action.page;
+  } else if(action.type === actions.BOOT) {
+    newState = Object.assign(newState, action.opts, {booted: true, page: 'home'});
+  } else if(action.type === actions.SHOW_MODAL) {
+    newState.modal = {component: action.component, props: action.props};
+  } else if(action.type === actions.HIDE_MODAL) {
+    delete newState.modal;
+  }
+  
+  if(newState.modal && newState.modal.component.reducer) {
+    let newModalState = newState.modal.component.reducer(newState.modal.state, action);
+    newState.modal = Object.assign({}, newState.modal, {state: newModalState});
+  }
+  
+  if(state.page === 'home') {
+    newState.home = Object.assign({}, state.home, HomePage.reducer(state.home, action));
+  }
+  
+  return newState;
+}
+
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {loading: true, page: 'home'};
+    this.redux = Redux.createStore(rootReducer.bind(this));
+    
+    const extract = state => ({booted: state.booted, page: state.page, modal: state.modal});
+    
+    this.state = extract(this.redux.getState());
+    this.redux.subscribe(_ => this.setState(extract(this.redux.getState())));
     
     load({
       endpoint: settings.service_url,
@@ -44,50 +93,55 @@ class App extends React.Component {
     }).then(facades => {
       this.store = facades.store;
       this.syncer = facades.syncManager;
-      this.setState({loading: false});
+      this.store.findGroups().then(groups => {
+        this.redux.dispatch(boot({cached: {groups}}));
+      });
     });
   }
   
-  showModal(dialog, config) {
-    this.setState({modal: ep(dialog, config)})
+  showModal(component, props) {
+    this.redux.dispatch({type: actions.SHOW_MODAL, component, props});
   }
   
   hideModal() {
-    this.setState({modal: undefined});
+    this.redux.dispatch({type: actions.HIDE_MODAL});
   }
   
   getChildContext() {
-    if (this.state.loading) {
-      return {};
-    } else {
-      // Must not be used before the loading is finished
-      return {app: this, store: this.store, syncer: this.syncer};
+    const context = { redux: this.redux };
+    if (this.state.booted) {
+      context.app = this;
+      context.store = this.store;
+      context.syncer = this.syncer;
     }
+    return context;
   }
   
   render() {
-    if (this.state.loading) {
-      return epc('div', {className: 'loading'}, 'Application is loading...');
+    if (!this.state.booted) {
+      return epc('div', { className: 'loading' }, 'Application is loading...');
     }
     
-    var pageComponents = {
+    const pageComponents = {
       home: HomePage,
       groups: GroupsPage,
       sync: SyncPage
     };
     
+    const currentPage = this.state.page;
+    
     const tabs = [
       ep(Button, {
-        key: 'home', label: 'Secrets', icon: 'home', toggled: this.state.page === 'home',
-        handler: () => this.setState({page: 'home'})
+        key: 'home', label: 'Secrets', icon: 'home', toggled: currentPage === 'home',
+        handler: () => this.redux.dispatch(navigate('home'))
       }),
       ep(Button, {
-        key: 'groups', label: 'Groups', icon: 'home', toggled: this.state.page === 'groups',
-        handler: () => this.setState({page: 'groups'})
+        key: 'groups', label: 'Groups', icon: 'home', toggled: currentPage === 'groups',
+        handler: () => this.redux.dispatch(navigate('groups'))
       }),
       ep(Button, {
-        key: 'sync', label: 'Sync', icon: 'refresh', toggled: this.state.page === 'sync',
-        handler: () => this.setState({page: 'sync'})
+        key: 'sync', label: 'Sync', icon: 'refresh', toggled: currentPage === 'sync',
+        handler: () => this.redux.dispatch(navigate('sync'))
       })
     ];
     
@@ -96,12 +150,12 @@ class App extends React.Component {
         epc("div", {key: "title", className: "title"}, "Secretum"),
         epc("div", {key: "version", className: "version"}, settings.build_version)
       ]),
-      ep(Router, {key: "router", components: pageComponents, page: this.state.page, id: "router-main"}),
+      ep(pageComponents[currentPage], {key: currentPage}),
       epc("div", {key: "footer", className: "footer"}, tabs)
     ];
     
     if (this.state.modal !== undefined) {
-      children.push(epc('div', {key: 'modal', className: 'modal'}, this.state.modal));
+      children.push(epc('div', {key: 'modal', className: 'modal'}, ep(this.state.modal.component, this.state.modal.props)));
     }
     
     return epc("div", {className: "app"}, children);
@@ -111,8 +165,9 @@ class App extends React.Component {
 App.childContextTypes = {
   app: React.PropTypes.object,
   store: React.PropTypes.object,
-  syncer: React.PropTypes.object
-}
+  syncer: React.PropTypes.object,
+  redux: React.PropTypes.object
+};
 
 document.addEventListener("DOMContentLoaded", function () {
   //overscroll(document.querySelector('#root'));

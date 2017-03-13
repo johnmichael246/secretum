@@ -40,7 +40,14 @@ module.exports = class Store {
         return true;
       };
       
-      const secrets = yield self.db.transaction('secrets').objectStore('secrets').toArray();
+      const tx = self.db.transaction(['secrets', 'groups']);
+      
+      const secrets = yield tx.objectStore('secrets').toArray();
+      const groups = yield tx.objectStore('groups').toMap();
+      for(let secret of secrets) {
+        secret.groupName = groups.get(secret.groupId).name;
+      }
+      
       return secrets.filter(match);
     });
   }

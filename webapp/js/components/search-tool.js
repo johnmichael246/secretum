@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const React = require('react');
+/* global React */
 const { ep, epc } = require('../ui.js');
 
 module.exports = class SearchTool extends React.Component {

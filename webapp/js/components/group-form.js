@@ -1,3 +1,4 @@
+/* @flow */
 // Copyright 2017 Alex Lementa
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,43 +13,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const React = require('react');
-const { ep } = require('../ui.js');
 const DataForm = require('./data-form.js');
+import type { SomeField } from './data-form.js';
 
-module.exports = class GroupForm extends React.Component {
-	constructor(props) {
-		super(props);
-	}
-
-	render() {
-		const readOnly = this.props.readOnly || false;
-    
-		const fields = [
-			{name: "id", type: "text", label: "ID", readOnly: true},
-			{name: "name", type: "textarea", label: "Name", readOnly: readOnly}
-		].filter(field => this.props.fields === undefined || this.props.fields.includes(field.name));
-
-		const actions = this.props.topActions||[];
-
-		const group = this.props.groupId === null ? {
-			id: '',
-			name: ''
-		} : this.context.store.getGroup(this.props.groupId);
-
-		const form = {
-			className: this.props.className||'' + ' secret-form',
-			title: this.props.title,
-			fields: fields,
-			data: group,
-			onSubmit: this.props.onSubmit,
-			onCancel: this.props.onCancel,
-			topActions: actions
-		};
-		return ep(DataForm, form);
-	}
+type Group = {
+  id: ?number,
+  name: string
 };
 
-module.exports.contextTypes = {
-  store: React.PropTypes.object
+type Props = {
+  editable: boolean,
+  fieldNames: Array<string>,
+  group: Group,
+  onSubmit: () => void,
+  onCancel: () => void,
+  onEdit: (group: Group) => void
 };
+
+const newGroupTemplate: Group = { id: null, name: '' };
+
+function GroupForm({
+  editable=true,
+  fieldNames=[],
+  group=newGroupTemplate,
+  onSubmit,
+  onCancel,
+  onEdit
+}: Props) {
+  
+	const fields: SomeField[] = [
+		{name: "id", type: "text", label: "ID", editable: false},
+		{name: "name", type: "longtext", label: "Name", editable, rows: 5}
+	].filter(field => fieldNames.includes(field.name));
+  
+	return <DataForm className="group-form" {...{fields, onSubmit, onCancel, onEdit}} data={group}/>;
+}
+
+module.exports = GroupForm;

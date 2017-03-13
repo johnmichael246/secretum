@@ -14,7 +14,7 @@
 
 module.exports = SecretsTable;
 
-const React = require('react');
+/* global React */
 const { ep, epc, ec } = require('../ui.js');
 const DataTable = require('./data-table.js');
 const SecretForm = require('./secret-form.js');
@@ -44,43 +44,32 @@ function SecretToolbox(props) {
   return ec("div", tools);
 }
 
-function merge(a1, a2) {
-  return a1.map((a,i) => Object.assign(a,a2[i]));
-}
-
 function SecretsTable(props, context) {
-  const transform = secrets => {
-    const actions = secrets.map(s => ({
-      actions: ep(SecretToolbox, {secret: s, actionHandlers: props.actionHandlers})
-    }));
-    return merge(secrets, actions);
+  const transform = secret => {
+    const instrumented = Object.create(secret);
+    instrumented.actions =  ep(SecretToolbox, {secret, actionHandlers: props.actionHandlers});
+    return instrumented;
   };
 
   const detailsFactory = (secret) => {
     const topActions = [
-      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret), icon: 'edit'},
-      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret), icon: 'flash'},
-      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret), icon: 'remove'}
+      {label: 'Edit', handler: () => props.actionHandlers.onEdit(secret.__proto__), icon: 'edit'},
+      {label: 'Copy', handler: () => props.actionHandlers.onCopy(secret.__proto__), icon: 'flash'},
+      {label: 'Remove', handler: () => props.actionHandlers.onRemove(secret.__proto__), icon: 'remove'}
     ];
     return ep(SecretForm, {
       className: "secret-details",
-      secretId: secret.id,
+      secret: secret,
+      groups: context.redux.getState().cached.groups,
       readOnly: true,
       topActions: topActions
     });
-  }
+  };
 
-  var data;
-  if(props.secrets instanceof Promise) {
-    data = props.secrets.then(s => transform(s));
-  } else {
-    data = transform(props.secrets);
+  let data = undefined;
+  if(!props.loading) {
+    data = props.secrets.map(transform);
   }
-
-  data = Promise.resolve(data).then(secrets => {
-    return Promise.all(secrets.map(secret => context.store.getGroup(secret.groupId)))
-      .then(groups => secrets.map((s,i) => Object.assign(s,{groupName: groups[i].name})));
-  });
 
   const columns = {
     id: "ID", groupName: 'Group', resource: 'Resource', principal: 'Principal',
@@ -100,10 +89,13 @@ function SecretsTable(props, context) {
     className: "secrets",
     columns: columns,
     data: data,
+    loading: props.loading,
+    detailed: props.detailed,
+    onRowClick: props.onRowClick,
     detailsFactory: props.details === undefined || props.details ? detailsFactory : undefined
   });
 }
 
 SecretsTable.contextTypes = {
-  store: React.PropTypes.object
+  redux: React.PropTypes.object
 };

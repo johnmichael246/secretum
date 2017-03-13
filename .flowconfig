@@ -1,0 +1,9 @@
+[ignore]
+
+[include]
+
+[libs]
+webapp/js-tests/flow-decls.js
+
+[options]
+emoji=true
