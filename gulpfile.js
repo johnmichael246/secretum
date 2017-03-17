@@ -59,7 +59,7 @@ browserifyBundle.on('log', console.log);
 
 function bundleJS() {
   return browserifyBundle
-    .transform(babelify, {presets: ['react']})
+    .transform(babelify, {presets: ['react'], plugins: ['transform-class-properties']})
     .bundle()
     .on('error', err => gulp.util.log('Browserify Error', err))
     .pipe(gulp.source('bundle.js'))

@@ -1,3 +1,4 @@
+// @flow
 // Copyright 2016-2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +22,21 @@ const SecretEditorDialog = require('../dialogs/secret-editor.js');
 const SecretForm = require('../components/secret-form.js');
 const Button = require('../components/button.js');
 
+import type { SecretsTableProps } from '../components/secrets-table.js';
+import type { Secret, SecretFormProps } from '../components/secret-form.js';
+
 const actions = require('../actions.js');
 
-module.exports = class HomePage extends React.Component {
-  constructor(props, context) {
+class HomePage extends React.Component {
+  _onSearch: (query: Object) => void;
+  _onCopy: (secret: Secret) => void;
+  _onEdit: (secret: Secret) => void;
+  _onRemove: (secret: Secret) => void;
+
+  constructor(props: any, context: any) {
     super(props);
     this.context = context;
-    
+
     this.state = {loading: true, query: {}};
     this.context.redux.subscribe(_ => {
       const state = this.context.redux.getState();
@@ -35,28 +44,21 @@ module.exports = class HomePage extends React.Component {
         this.setState(state.home);
       }
     });
-    
-    this._onSearch = this._onSearch.bind(this);
-    this._onCopy = this._onCopy.bind(this);
-    this._onEdit = this._onEdit.bind(this);
-    this._onRemove = this._onRemove.bind(this);
-    this._onNew = this._onNew.bind(this);
-    this._onSecretClick = this._onSecretClick.bind(this);
   }
-  
-  _onSearch(query) {
+
+  _onSearch = (query: Object) => {
     this.context.redux.dispatch({type: actions.HOME_QUERY, query});
     this.context.store.findSecrets(query).then(secrets => {
       this.context.redux.dispatch({type: actions.HOME_INJECT, secrets});
     });
   }
-  
-  
-  _onCopy(secret) {
+
+
+  _onCopy = (secret: Secret) => {
     copyTextToClipboard(secret.password);
   }
-  
-  _onEdit(secret) {
+
+  _onEdit = (secret: Secret) => {
     const props = {
       secret: secret,
       onSubmit: (secret) => {
@@ -67,8 +69,8 @@ module.exports = class HomePage extends React.Component {
     };
     this.context.redux.dispatch({type: actions.SHOW_MODAL, component: SecretEditorDialog, props});
   }
-  
-  _onNew() {
+
+  _onNew = () => {
     const props = {
       title: 'New Secret',
       onSubmit: _ => {
@@ -80,8 +82,8 @@ module.exports = class HomePage extends React.Component {
     };
     this.context.redux.dispatch({type: actions.SHOW_MODAL, component: SecretEditorDialog, props});
   }
-  
-  _onRemove(secret) {
+
+  _onRemove = (secret: Secret) => {
     const props = {
       content: [
         epc('div', {key: 'question'}, 'Are you sure you would like to remove this secret?'),
@@ -99,29 +101,42 @@ module.exports = class HomePage extends React.Component {
       },
       onNo: () => this.context.redux.dispatch({type: actions.HIDE_MODAL})
     };
-    
+
     this.context.redux.dispatch({type: actions.SHOW_MODAL, component: ConfirmDialog, props});
   }
-  
-  _onSecretClick(index) {
+
+  _onSecretClick = (index: number) => {
     this.context.redux.dispatch({type: actions.HOME_DETAIL, index});
   }
-  
-  
+
+
   componentDidMount() {
     this._onSearch({});
-    
-    document.body.addEventListener('keydown', event => {
+
+    if(!document.body) throw 'React invariant violated!';
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.altKey && event.key === 'q') {
-        document.querySelector('.search select').focus();
+        const select = document.querySelector('.search select');
+
+        if(!select) {
+          throw new Error('Unable to find the search input in the DOM!');
+        }
+
+        select.focus();
       } else if (event.altKey && event.key === 'w') {
         const input = document.querySelector('.search input');
+
+        if(!input || !(input instanceof HTMLInputElement)) {
+          throw new Error('Unable to find the search input in the DOM!');
+        }
+
         input.focus();
         input.select();
       }
     });
   }
-  
+
   render() {
     const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
     return epc("div", {className: "page page--home"}, [
@@ -150,6 +165,8 @@ module.exports = class HomePage extends React.Component {
     ]);
   }
 };
+
+module.exports = HomePage;
 
 module.exports.contextTypes = {
   app: React.PropTypes.object,
@@ -182,32 +199,32 @@ module.exports.reducer = function (state = {query: {}, loading: true}, action) {
 
 function copyTextToClipboard(text) {
   var textArea = document.createElement("textarea");
-  
+
   // Place in top-left corner of screen regardless of scroll position.
   textArea.style.position = 'fixed';
   textArea.style.top = 0;
   textArea.style.left = 0;
-  
+
   // Ensure it has a small width and height. Setting to 1px / 1em
   // doesn't work as this gives a negative w/h on some browsers.
   textArea.style.width = '2em';
   textArea.style.height = '2em';
-  
+
   // We don't need padding, reducing the size if it does flash render.
   textArea.style.padding = 0;
-  
+
   // Clean up any borders.
   textArea.style.border = 'none';
   textArea.style.outline = 'none';
   textArea.style.boxShadow = 'none';
-  
+
   // Avoid flash of white box if rendered for any reason.
   textArea.style.background = 'transparent';
-  
+
   textArea.value = text;
   document.body.appendChild(textArea);
   textArea.select();
-  
+
   try {
     if (document.execCommand('copy') === 'unsuccessful') {
       throw new Error("Unable to copy to clipboard!");

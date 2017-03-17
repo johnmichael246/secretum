@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 // Copyright 2016-2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 const { ep, epc } = require('../ui.js');
 const Button = require('./button.js');
 const Segment = require('./segment.js');
-const ActionsBox = require('./actions-box.jsx');
+const ActionsBox = require('./actions-box.js');
 
 type AbstractField = {
   name: string,
@@ -26,7 +26,7 @@ type AbstractField = {
   editable: boolean
 };
 
-type Option = {
+export type Option = {
   key: string,
   value: string
 };
@@ -37,9 +37,9 @@ export type SelectField = AbstractField & {type: 'select', options: Option[]};
 export type LongTextField = AbstractField & {type: 'longtext', rows: number};
 export type SomeField = TextField | PasswordField | SelectField | LongTextField;
 
-type EditHandler = (date: Object) => void;
+type EditHandler = (data: Object) => void;
 
-type Props = {
+export type DataFormProps = {
   className?: string,
   data: Object,
   fields: SomeField[],
@@ -49,7 +49,7 @@ type Props = {
   actions?: Action[]
 };
 
-type Action = {
+export type Action = {
   label: string,
   icon: string,
   handler: () => any
@@ -57,7 +57,7 @@ type Action = {
 
 module.exports = DataForm;
 
-function DataForm(props: Props) {
+function DataForm(props: DataFormProps) {
   const {className, fields, data, onEdit, onSubmit, onCancel, actions=[]} = props;
 
   const bottomActions = [];
@@ -77,7 +77,7 @@ function DataForm(props: Props) {
       handler: _ => onCancel()
     });
   }
-  
+
   return (
     <div className={"data-form" + (className ? ` data-form--${className}` : '')}>
       { actions.length > 0 && buildActions(actions, 'top-actions')}
@@ -124,11 +124,11 @@ function buildPasswordField(
   value: string,
   onChange: (data: Object) => any
 ) {
-  
+
   if(editable === undefined || editable === true) {
     return buildTextField({editable, name, type: 'text', label}, value, onChange);
   }
-  
+
   return (
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>
@@ -142,7 +142,7 @@ function buildTextField(
   value: string,
   onChange: (data: Object) => any
 ) {
-  
+
   return (
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>
@@ -155,7 +155,7 @@ function buildSelectField(
   {editable=true, name, label, options}: SelectField,
   value: string,
   onChange: Function) {
-  
+
   return (
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>
@@ -171,7 +171,7 @@ function buildLongTextField(
   value: string,
   onChange: Function
 ) {
-  
+
   return (
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>

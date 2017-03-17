@@ -1,3 +1,4 @@
+// @flow
 // Copyright 2016-2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,46 +13,95 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const { ep } = require('../ui.js');
 const DataForm = require('./data-form.js');
+
+import type { Action, DataFormProps, SomeField, Option } from './data-form.js';
+import type { Group } from './group-form.js';
+
+export type SecretFormProps = {
+  title?: string,
+  secret?: Secret,
+  groups: Array<Group>,
+  editable?: boolean,
+  fields?: Array<string>,
+  generator?: boolean,
+  topActions?: Array<Action>,
+  onEdited?: EditHandler,
+  onSubmit?: Function,
+  onCancel?: Function
+};
+
+const newSecretTemplate = {
+  id: null,
+  groupId: undefined,
+  resource: '',
+  principal: '',
+  password: '',
+  note: '',
+};
+
+export type Secret = {
+  id: number,
+  groupId: number,
+  resource: string,
+  principal: string,
+  password: string,
+  note: string
+};
+
+export type EditHandler = (secret: Secret) => void;
 
 module.exports = SecretForm;
 
-function SecretForm(props) {
-  
-  const groups = props.groups.map(g => ({value: g.id, label: g.name}));
-  const readOnly = props.readOnly || false;
-  
-  const fields = [
+function SecretForm({
+  title,
+  secret,
+  groups,
+  editable=false,
+  fields,
+  topActions=[],
+  generator=false,
+  onEdited=()=>{},
+  onSubmit,
+  onCancel
+}: SecretFormProps) {
+
+  const groupOptions: Array<Option> = groups.map(group => {
+    return {key: group.id.toString(), value: group.name};
+  });
+
+  const formFields: Array<SomeField> = [
     {name: "id", type: "text", label: "ID", editable: false},
-    {name: "groupId", type: "select", label: "Group", options: groups, editable: !readOnly},
-    {name: "resource", type: "text", label: "Resource", editable: !readOnly},
-    {name: "principal", type: "text", label: "Principal", editable: !readOnly},
-    {name: "password", type: "password", label: "Password", editable: !readOnly},
-    {name: "note", type: "longtext", label: "Note", editable: !readOnly}
-  ].filter(field => props.fields === undefined || props.fields.includes(field.name));
+    {name: "groupId", type: "select", label: "Group", options: groupOptions, editable},
+    {name: "resource", type: "text", label: "Resource", editable},
+    {name: "principal", type: "text", label: "Principal", editable},
+    {name: "password", type: "password", label: "Password", editable},
+    {name: "note", type: "longtext", label: "Note", rows: 5, editable}
+  ].filter(field => !fields || fields.includes(field.name));
 
-  const actions = props.topActions||[];
-
-  if(props.generator||false) {
-    actions.push({label: 'Generate', icon: 'magic', handler: _ => props.onEdited(generatePassword(props.secret))});
+  if(generator) {
+    topActions.push({
+      label: 'Generate',
+      icon: 'magic',
+      handler: _ => onEdited(generatePassword(secret||newSecretTemplate))
+    });
   }
-  
-  const form = {
+
+  const form: DataFormProps = {
     className: 'secret-form',
-    title: props.title,
-    fields: fields,
-    data: props.secret,
-    onSubmit: props.onSubmit,
-    onCancel: props.onCancel,
-    onEdit: props.onEdited,
-    actions: actions,
-    editable: !readOnly
+    title,
+    fields: formFields,
+    data: secret||newSecretTemplate,
+    onSubmit,
+    onCancel,
+    onEdited,
+    actions: topActions,
+    editable
   };
-  return ep(DataForm, form);
+  return <DataForm {...form}/>;
 }
 
-function generatePassword(secret) {
+function generatePassword(secret: Object): Object {
   const dict = 'abcdefghijklmopqrstuvwxyzABCDEFGIJKLMOPQRSTUVWXYZ0123456789!@#$%^&*()+*-~';
   secret.password = new Array(20).fill(0)
     .map(Math.random)

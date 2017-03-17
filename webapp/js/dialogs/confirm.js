@@ -13,7 +13,7 @@
 // limitations under the License.
 
 const { epc } = require('../ui.js');
-const ActionsBox = require('../components/actions-box.jsx');
+const ActionsBox = require('../components/actions-box.js');
 
 function ConfirmDialog(props) {
   const title = epc('div', {key: 'title', className: 'dialog__title'}, 'Confirm');

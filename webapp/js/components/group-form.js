@@ -16,37 +16,38 @@
 const DataForm = require('./data-form.js');
 import type { SomeField } from './data-form.js';
 
-type Group = {
-  id: ?number,
+export type Group = {
+  id: number,
   name: string
 };
 
-type Props = {
+export type GroupFormProps = {
   editable: boolean,
   fieldNames: Array<string>,
-  group: Group,
+  group?: Group,
   onSubmit: () => void,
   onCancel: () => void,
   onEdit: (group: Group) => void
 };
 
-const newGroupTemplate: Group = { id: null, name: '' };
+const newGroupTemplate = { id: null, name: '' };
 
 function GroupForm({
   editable=true,
   fieldNames=[],
-  group=newGroupTemplate,
+  group,
   onSubmit,
   onCancel,
   onEdit
-}: Props) {
-  
+}: GroupFormProps) {
+
 	const fields: SomeField[] = [
 		{name: "id", type: "text", label: "ID", editable: false},
 		{name: "name", type: "longtext", label: "Name", editable, rows: 5}
 	].filter(field => fieldNames.includes(field.name));
-  
-	return <DataForm className="group-form" {...{fields, onSubmit, onCancel, onEdit}} data={group}/>;
+
+	return <DataForm className="group-form" data={group||newGroupTemplate}
+    {...{fields, onSubmit, onCancel, onEdit}} />;
 }
 
 module.exports = GroupForm;
