@@ -43,7 +43,7 @@ export type DataFormProps = {
   className?: string,
   data: Object,
   fields: SomeField[],
-  onEdit?: EditHandler,
+  onEdited?: EditHandler,
   onSubmit?: () => any,
   onCancel?: () => any,
   actions?: Action[]
@@ -58,7 +58,15 @@ export type Action = {
 module.exports = DataForm;
 
 function DataForm(props: DataFormProps) {
-  const {className, fields, data, onEdit, onSubmit, onCancel, actions=[]} = props;
+  const {
+    className,
+    fields,
+    data,
+    onEdited,
+    onSubmit,
+    onCancel,
+    actions=[]
+  } = props;
 
   const bottomActions = [];
   if(onSubmit) {
@@ -81,7 +89,7 @@ function DataForm(props: DataFormProps) {
   return (
     <div className={"data-form" + (className ? ` data-form--${className}` : '')}>
       { actions.length > 0 && buildActions(actions, 'top-actions')}
-      { fields.length > 0 && fields.map(field => buildField(field, data[field.name], onChangeFactory(data, onEdit))) }
+      { fields.length > 0 && fields.map(field => buildField(field, data[field.name], onChangeFactory(data, onEdited))) }
       { bottomActions.length > 0 && buildActions(bottomActions, 'bottom-actions')}
     </div>
   );
@@ -160,7 +168,7 @@ function buildSelectField(
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>
       <select key="input" disabled={!editable} {...{name, value, onChange}}>
-        {options.map(option => <option key={label} {...option}/>)}
+        {options.map(option => <option key={option.key}>{option.value}</option>)}
       </select>
     </div>
   );

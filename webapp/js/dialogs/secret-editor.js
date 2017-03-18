@@ -1,3 +1,4 @@
+// @flow
 // Copyright 2016-2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,70 +18,85 @@ const SecretForm = require('../components/secret-form.js');
 const { ep, epc } = require('../ui.js');
 const actions = require('../actions.js');
 
+import type { SecretFormProps, Secret } from '../components/secret-form.js';
+
 const initial = {
   booted: false
 };
 
+export type SecretEditorProps = {
+  onSubmit: (secret: Secret) => void,
+  onCancel: () => void,
+  secret?: Secret
+};
+
+const newSecretTemplate = {
+  groupId: 0,
+  resource: '',
+  principal: '',
+  password: '',
+  note: '',
+};
+
 class SecretEditorDialog extends React.Component {
-  constructor(props, context) {
+  props: SecretEditorProps;
+
+  constructor(props: SecretEditorProps, context: any) {
     super(props);
     this.context = context;
     this.state = initial;
-    
+
     this.unsubscribe = this.context.redux.subscribe(_ => {
       let modal = this.context.redux.getState().modal;
       if(modal) {
         this.setState(modal.state);
       }
     });
-    
+
     this._onEdited = this._onEdited.bind(this);
   }
-  
+
   componentDidMount() {
-    let secret = this.props.secret;
-    if(!secret) {
-      secret = {
-        id: '',
-        resource: '',
-        groupId: 0,
-        principal: '',
-        password: '',
-        note: ''
-      };
-    }
-    
+    let secret = this.props.secret || newSecretTemplate;
     this.context.redux.dispatch({type: actions.SECRET_EDITOR.BOOT, secret});
   }
-  
+
   componentWillUnmount() {
     this.unsubscribe();
   }
-  
-  _onEdited(secret) {
+
+  _onEdited = (secret: Secret) => {
     this.context.redux.dispatch({type: actions.SECRET_EDITOR.EDIT, secret});
   }
 
   render() {
-    const title = epc('div', {key: 'title', className: 'dialog__title'}, this.props.title||'Secret Editor');
-    
+
     let content;
     if(this.state.booted) {
-      let form = ep(SecretForm, {
-        key: 'form',
+      const props: SecretFormProps = {
+        key: "form",
         generator: true,
         secret: this.state.secret,
         groups: this.context.redux.getState().cached.groups,
-        onSubmit: this.props.onSubmit,
+        onSubmit: _ => this.props.onSubmit(this.context.redux.getState().modal.state.secret),
         onCancel: this.props.onCancel,
         onEdited: this._onEdited
-      });
-      content = epc('div', {key: 'content', className: 'dialog__content'}, form);
+      };
+      content = (
+          <div key="content" className="dialog__content">
+            <SecretForm {...props}/>
+          </div>
+      );
     } else {
-      content = epc('div', {key: 'content', className: 'dialog__content'}, 'Loading');
+      content = <div key="content" className="dialog__content">Loading</div>;
     }
-    
-    return epc('div', {className: 'dialog'}, [title, content]);
+
+    return (
+      <div className="dialog">
+        <div key="title" className="dialog__title">Secret Editor</div>
+        {content}
+      </div>
+    );
   }
 }
 

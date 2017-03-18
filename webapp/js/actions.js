@@ -15,13 +15,24 @@
 module.exports = {
   NAVIGATE: 'navigate',
   BOOT: 'boot',
-  HOME_QUERY: 'home-query',
-  HOME_INJECT: 'home-inject',
-  HOME_DETAIL: 'home-detail',
+  HOME_PAGE: {
+    QUERY: 'home-page/query',
+    INJECT: 'home-page/inject',
+    DETAIL: 'home-page/detail',
+  },
+  GROUPS_PAGE: {
+    QUERY: 'groups-page/query',
+    INJECT: 'groups-page/inject',
+    DETAIL: 'groups-page/detail',
+  },
   SHOW_MODAL: 'show-modal',
   HIDE_MODAL: 'hide-modal',
   SECRET_EDITOR: {
     BOOT: 'secret-editor/boot',
     EDIT: 'secret-editor/edit'
+  },
+  GROUP_EDITOR: {
+    BOOT: 'group-editor/boot',
+    EDIT: 'group-editor/edit'
   }
 };

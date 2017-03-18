@@ -20,7 +20,7 @@ import type { Group } from './group-form.js';
 
 export type SecretFormProps = {
   title?: string,
-  secret?: Secret,
+  secret: Secret|SecretTemplate,
   groups: Array<Group>,
   editable?: boolean,
   fields?: Array<string>,
@@ -29,15 +29,6 @@ export type SecretFormProps = {
   onEdited?: EditHandler,
   onSubmit?: Function,
   onCancel?: Function
-};
-
-const newSecretTemplate = {
-  id: null,
-  groupId: undefined,
-  resource: '',
-  principal: '',
-  password: '',
-  note: '',
 };
 
 export type Secret = {
@@ -49,6 +40,14 @@ export type Secret = {
   note: string
 };
 
+export type SecretTemplate = {
+  groupId: number,
+  resource: string,
+  principal: string,
+  password: string,
+  note: string
+}
+
 export type EditHandler = (secret: Secret) => void;
 
 module.exports = SecretForm;
@@ -57,7 +56,7 @@ function SecretForm({
   title,
   secret,
   groups,
-  editable=false,
+  editable=true,
   fields,
   topActions=[],
   generator=false,
@@ -79,11 +78,15 @@ function SecretForm({
     {name: "note", type: "longtext", label: "Note", rows: 5, editable}
   ].filter(field => !fields || fields.includes(field.name));
 
+  if(!('id' in Object.keys(secret))) {
+    formFields.splice(0,1);
+  }
+
   if(generator) {
     topActions.push({
       label: 'Generate',
       icon: 'magic',
-      handler: _ => onEdited(generatePassword(secret||newSecretTemplate))
+      handler: _ => onEdited(generatePassword(secret))
     });
   }
 
@@ -91,7 +94,7 @@ function SecretForm({
     className: 'secret-form',
     title,
     fields: formFields,
-    data: secret||newSecretTemplate,
+    data: secret,
     onSubmit,
     onCancel,
     onEdited,

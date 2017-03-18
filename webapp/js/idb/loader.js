@@ -21,24 +21,24 @@ module.exports = { load };
 function load(config) {
   return new Promise((resolve, reject) => {
     const openRequest = versionedIDBFactory(config.indexedDBFactory).open(config.idb_name, 1);
-    
+
     openRequest.onsuccess = () => {
       const db = openRequest.result;
-      db.onerror = console.error.bind(console);
-      
+      //db.onerror = console.error.bind(console);
+
       const store = new Store(db);
       const syncManager = new SyncManager(db);
       resolve({store, syncManager, db});
-      
+
       console.log('IndexedDB is now open.');
     };
-    
+
     openRequest.onerror = reject;
-    
+
     openRequest.onupgradeneeded = () => {
       const db = openRequest.result;
       db.onerror = console.error;
-      
+
       const localSchema = {
         secrets: {
           type: 'entity'
@@ -55,7 +55,7 @@ function load(config) {
           }
         }
       };
-      
+
       buildDBSchema(db, localSchema);
       if('schema' in config) {
         buildDBSchema(db, config.schema);
@@ -67,17 +67,17 @@ function load(config) {
 function buildDBSchema(db, schema) {
   for(let name of Object.keys(schema)) {
     let table = schema[name];
-    
+
     let objectStore;
     if(table.type === 'entity') {
       objectStore = db.createObjectStore(name, {keyPath: 'id', autoIncrement: true});
-      
+
       if('initial' in table) {
         for (let entity of table.initial) {
           objectStore.add(entity);
         }
       }
-      
+
     } else if(table.type === 'map') {
       objectStore = db.createObjectStore(name);
       for(let key of Object.keys(table.initial)) {
@@ -86,4 +86,3 @@ function buildDBSchema(db, schema) {
     }
   }
 }
-

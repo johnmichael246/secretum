@@ -23,7 +23,7 @@ export type Group = {
 
 export type GroupFormProps = {
   editable: boolean,
-  fieldNames: Array<string>,
+  fieldNames?: Array<string>,
   group?: Group,
   onSubmit: () => void,
   onCancel: () => void,
@@ -44,7 +44,9 @@ function GroupForm({
 	const fields: SomeField[] = [
 		{name: "id", type: "text", label: "ID", editable: false},
 		{name: "name", type: "longtext", label: "Name", editable, rows: 5}
-	].filter(field => fieldNames.includes(field.name));
+	].filter(field => {
+    return fieldNames.length === 0 || fieldNames.includes(field.name);
+  });
 
 	return <DataForm className="group-form" data={group||newGroupTemplate}
     {...{fields, onSubmit, onCancel, onEdit}} />;

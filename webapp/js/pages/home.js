@@ -27,12 +27,12 @@ import type { Secret, SecretFormProps } from '../components/secret-form.js';
 
 const actions = require('../actions.js');
 
-class HomePage extends React.Component {
-  _onSearch: (query: Object) => void;
-  _onCopy: (secret: Secret) => void;
-  _onEdit: (secret: Secret) => void;
-  _onRemove: (secret: Secret) => void;
+type SecretsQuery = {
+  keyword?: string,
+  groupId?: number
+};
 
+class HomePage extends React.Component {
   constructor(props: any, context: any) {
     super(props);
     this.context = context;
@@ -46,7 +46,7 @@ class HomePage extends React.Component {
     });
   }
 
-  _onSearch = (query: Object) => {
+  _onSearch = (query: SecretsQuery) => {
     this.context.redux.dispatch({type: actions.HOME_QUERY, query});
     this.context.store.findSecrets(query).then(secrets => {
       this.context.redux.dispatch({type: actions.HOME_INJECT, secrets});
@@ -138,16 +138,19 @@ class HomePage extends React.Component {
   }
 
   render() {
-    const handlers = {onCopy: this._onCopy, onEdit: this._onEdit, onRemove: this._onRemove};
+    const secretsTableProps = {
+      key: "table",
+      loading: this.state.loading,
+      secrets: this.state.secrets,
+      detailed: this.state.detailed,
+      onRowClick: this._onSecretClick,
+      onEdit: this._onEdit,
+      onCopy: this._onCopy,
+      onRemove: this._onRemove
+    };
+
     return epc("div", {className: "page page--home"}, [
-      ep(SecretsTable, {
-        key: "table",
-        loading: this.state.loading,
-        secrets: this.state.secrets,
-        detailed: this.state.detailed,
-        onRowClick: this._onSecretClick,
-        actionHandlers: handlers
-      }),
+      <SecretsTable {...secretsTableProps}/>,
       ep(Button, {
         key: '!new',
         className: 'new-secret',
@@ -174,36 +177,85 @@ module.exports.contextTypes = {
   redux: React.PropTypes.object
 };
 
-module.exports.reducer = function (state = {query: {}, loading: true}, action) {
-  if (action.type === actions.HOME_QUERY) {
-    return Object.assign({}, state, {loading: true, query: action.query});
-  } else if (action.type === actions.HOME_INJECT) {
-    const newDetailed = new Array(action.secrets.length).fill(false);
-    if (state.detailed !== undefined) {
-      action.secrets.forEach((secret, index) => {
-        const oldIndex = state.secrets.findIndex(s => s.id === secret.id);
-        if (oldIndex !== -1) {
-          newDetailed[index] = state.detailed[oldIndex];
-        }
-      });
+function query(state, action) {
+  return Object.assign({}, state, {loading: true, query: action.query});
+}
+
+type HomeInjectAction = {
+  type: actions.HOME_INJECT,
+  secrets: Array<Secret>
+};
+
+type LoadingState = {
+  loading: true,
+  secrets?: Array<Secret>,
+  detailed?: Array<boolean>,
+  query: SecretsQuery
+};
+
+type LoadedState = {
+  loading: false,
+  secrets: Array<Secret>,
+  detailed: Array<boolean>,
+  query: SecretsQuery
+};
+
+function inject(state: LoadingState, action: HomeInjectAction): LoadedState {
+  const newDetailed = new Array(action.secrets.length).fill(false);
+
+  if (state.detailed && state.secrets) {
+    const oldDetailed = state.detailed;
+    const oldSecrets = state.secrets;
+
+    for(let [index, secret] of action.secrets.entries()) {
+      const oldIndex = oldSecrets.findIndex(s => s.id === secret.id);
+      if (oldIndex !== -1) {
+        newDetailed[index] = oldDetailed[oldIndex];
+      }
     }
-    return Object.assign({}, state, {loading: false, secrets: action.secrets, detailed: newDetailed});
+  }
+  return {
+    query: state.query,
+    loading: false,
+    secrets: action.secrets,
+    detailed: newDetailed
+  };
+}
+
+function detail(state: LoadedState, action) {
+  let newDetailed = Array.from(state.detailed);
+  newDetailed[action.index] = !newDetailed[action.index];
+  return Object.assign({}, state, {detailed: newDetailed});
+}
+
+function reduce(state = {query: {}, loading: true}, action) {
+  if (action.type === actions.HOME_QUERY) {
+    return query(state, action);
+  } else if (action.type === actions.HOME_INJECT) {
+    if(!state.loading) {
+      throw new Error('Can not inject into, because not loading!');
+    }
+    return inject(state, action);
   } else if (action.type === actions.HOME_DETAIL) {
-    let newDetailed = Array.from(state.detailed);
-    newDetailed[action.index] = !newDetailed[action.index];
-    return Object.assign({}, state, {detailed: newDetailed});
+    if(state.loading) {
+      throw new Error('Can not detail a record, while loading!');
+    }
+
+    return detail(state, action);
   } else {
     return state;
   }
 };
+
+module.exports.reducer = reduce;
 
 function copyTextToClipboard(text) {
   var textArea = document.createElement("textarea");
 
   // Place in top-left corner of screen regardless of scroll position.
   textArea.style.position = 'fixed';
-  textArea.style.top = 0;
-  textArea.style.left = 0;
+  textArea.style.top = '0';
+  textArea.style.left = '0';
 
   // Ensure it has a small width and height. Setting to 1px / 1em
   // doesn't work as this gives a negative w/h on some browsers.
@@ -211,7 +263,7 @@ function copyTextToClipboard(text) {
   textArea.style.height = '2em';
 
   // We don't need padding, reducing the size if it does flash render.
-  textArea.style.padding = 0;
+  textArea.style.padding = '0';
 
   // Clean up any borders.
   textArea.style.border = 'none';
@@ -222,7 +274,13 @@ function copyTextToClipboard(text) {
   textArea.style.background = 'transparent';
 
   textArea.value = text;
-  document.body.appendChild(textArea);
+
+  const body = document.body;
+  if(!body) {
+      throw new Error('The DOM is not loaded yet!');
+  }
+
+  body.appendChild(textArea);
   textArea.select();
 
   try {
@@ -230,6 +288,6 @@ function copyTextToClipboard(text) {
       throw new Error("Unable to copy to clipboard!");
     }
   } finally {
-    document.body.removeChild(textArea);
+    body.removeChild(textArea);
   }
 }
