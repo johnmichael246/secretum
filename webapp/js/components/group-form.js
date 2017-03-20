@@ -21,35 +21,53 @@ export type Group = {
   name: string
 };
 
-export type GroupFormProps = {
-  editable: boolean,
-  fieldNames?: Array<string>,
-  group?: Group,
-  onSubmit: () => void,
-  onCancel: () => void,
-  onEdit: (group: Group) => void
+const newGroupTemplate = {
+  name: ''
 };
 
-const newGroupTemplate = { id: null, name: '' };
+export type GroupFormProps =
+  |ViewGroupFormProps
+  |EditGroupFormProps;
 
-function GroupForm({
-  editable=true,
-  fieldNames=[],
-  group,
-  onSubmit,
-  onCancel,
-  onEdit
-}: GroupFormProps) {
+export type ViewGroupFormProps = {
+  editable: false,
+  group: Group
+};
 
-	const fields: SomeField[] = [
-		{name: "id", type: "text", label: "ID", editable: false},
-		{name: "name", type: "longtext", label: "Name", editable, rows: 5}
-	].filter(field => {
-    return fieldNames.length === 0 || fieldNames.includes(field.name);
-  });
+export type EditGroupFormProps = {
+  editable: true,
+  onSubmit: () => void,
+  onCancel: () => void,
+  onEdit: (group: Group) => void,
+  group: Group|(typeof newGroupTemplate)
+};
 
-	return <DataForm className="group-form" data={group||newGroupTemplate}
-    {...{fields, onSubmit, onCancel, onEdit}} />;
+export default function GroupForm(props: GroupFormProps) {
+
+  var dataFormProps;
+  const fields: SomeField[] = [
+    {name: "id", type: "text", label: "ID", editable: false},
+    {name: "name", type: "longtext", label: "Name", editable: props.editable, rows: 5}
+  ];
+
+  if(props.editable){
+    dataFormProps = {
+      editable: true,
+      data: props.group||newGroupTemplate,
+      fields,
+      onSubmit: props.onSubmit,
+      onCancel: props.onCancel,
+      onEdit: props.onEdit
+    };
+  } else {
+    dataFormProps = {
+      editable: false,
+      data: props.group,
+      fields
+    };
+  }
+
+	return <DataForm className="group-form" {...dataFormProps} />;
 }
 
-module.exports = GroupForm;
+GroupForm.newGroupTemplate = newGroupTemplate;

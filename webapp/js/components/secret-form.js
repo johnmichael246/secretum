@@ -26,7 +26,7 @@ export type SecretFormProps = {
   fields?: Array<string>,
   generator?: boolean,
   topActions?: Array<Action>,
-  onEdited?: EditHandler,
+  onEdit?: EditHandler,
   onSubmit?: Function,
   onCancel?: Function
 };
@@ -60,7 +60,7 @@ function SecretForm({
   fields,
   topActions=[],
   generator=false,
-  onEdited=()=>{},
+  onEdit=()=>{},
   onSubmit,
   onCancel
 }: SecretFormProps) {
@@ -86,7 +86,7 @@ function SecretForm({
     topActions.push({
       label: 'Generate',
       icon: 'magic',
-      handler: _ => onEdited(generatePassword(secret))
+      handler: _ => onEdit(generatePassword(secret))
     });
   }
 
@@ -97,7 +97,7 @@ function SecretForm({
     data: secret,
     onSubmit,
     onCancel,
-    onEdited,
+    onEdit: data => onEdit({...data, groupId: parseInt(data.groupId)}),
     actions: topActions,
     editable
   };

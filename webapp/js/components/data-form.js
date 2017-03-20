@@ -43,7 +43,7 @@ export type DataFormProps = {
   className?: string,
   data: Object,
   fields: SomeField[],
-  onEdited?: EditHandler,
+  onEdit?: EditHandler,
   onSubmit?: () => any,
   onCancel?: () => any,
   actions?: Action[]
@@ -62,7 +62,7 @@ function DataForm(props: DataFormProps) {
     className,
     fields,
     data,
-    onEdited,
+    onEdit,
     onSubmit,
     onCancel,
     actions=[]
@@ -89,7 +89,7 @@ function DataForm(props: DataFormProps) {
   return (
     <div className={"data-form" + (className ? ` data-form--${className}` : '')}>
       { actions.length > 0 && buildActions(actions, 'top-actions')}
-      { fields.length > 0 && fields.map(field => buildField(field, data[field.name], onChangeFactory(data, onEdited))) }
+      { fields.length > 0 && fields.map(field => buildField(field, data[field.name], onChangeFactory(data, onEdit))) }
       { bottomActions.length > 0 && buildActions(bottomActions, 'bottom-actions')}
     </div>
   );
@@ -168,7 +168,7 @@ function buildSelectField(
     <div key={name} className="data-form__field">
       <div key="label" className="data-form__label">{label}</div>
       <select key="input" disabled={!editable} {...{name, value, onChange}}>
-        {options.map(option => <option key={option.key}>{option.value}</option>)}
+        {options.map(option => <option key={option.key} value={option.key}>{option.value}</option>)}
       </select>
     </div>
   );

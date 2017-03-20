@@ -45,7 +45,9 @@ class SecretEditorDialog extends React.Component {
     super(props);
     this.context = context;
     this.state = initial;
+  }
 
+  componentDidMount() {
     this.unsubscribe = this.context.redux.subscribe(_ => {
       let modal = this.context.redux.getState().modal;
       if(modal) {
@@ -53,11 +55,7 @@ class SecretEditorDialog extends React.Component {
       }
     });
 
-    this._onEdited = this._onEdited.bind(this);
-  }
-
-  componentDidMount() {
-    let secret = this.props.secret || newSecretTemplate;
+    let secret = this.props.secret || {...newSecretTemplate};
     this.context.redux.dispatch({type: actions.SECRET_EDITOR.BOOT, secret});
   }
 
@@ -65,7 +63,7 @@ class SecretEditorDialog extends React.Component {
     this.unsubscribe();
   }
 
-  _onEdited = (secret: Secret) => {
+  _onEdit = (secret: Secret) => {
     this.context.redux.dispatch({type: actions.SECRET_EDITOR.EDIT, secret});
   }
 
@@ -80,7 +78,7 @@ class SecretEditorDialog extends React.Component {
         groups: this.context.redux.getState().cached.groups,
         onSubmit: _ => this.props.onSubmit(this.context.redux.getState().modal.state.secret),
         onCancel: this.props.onCancel,
-        onEdited: this._onEdited
+        onEdit: this._onEdit
       };
       content = (
           <div key="content" className="dialog__content">

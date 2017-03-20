@@ -17,9 +17,14 @@ module.exports = SecretsTable;
 
 /* global React */
 const { ep, epc, ec } = require('../ui.js');
-const DataTable = require('./data-table.js');
+import DataTable from './data-table.js';
 const SecretForm = require('./secret-form.js');
 
+import type {
+  DataTableProps,
+  LoadingDataTableProps,
+  LoadedDataTableProps
+} from './data-table.js';
 import type { SecretFormProps, Secret} from './secret-form.js';
 
 function SecretToolbox({secret, onCopy, onEdit, onRemove}) {
@@ -29,7 +34,7 @@ function SecretToolbox({secret, onCopy, onEdit, onRemove}) {
   return (
     <div>
       <a key="copy" onClick={onCopyClick}><i className="fa fa-flash"/></a>
-      <a key="edit" onClick={onEditClick}><i className="fa fa-edit"/></a>,
+      <a key="edit" onClick={onEditClick}><i className="fa fa-edit"/></a>
       <a key="remove" onClick={onRemoveClick}><i className="fa fa-remove"/></a>
     </div>
   );
@@ -92,15 +97,18 @@ function SecretsTable({
     }
   }
 
-  const props = {
-    columns: tableColumns,
-    data,
-    loading,
-    detailed,
-    onRowClick,
-    detailsFactory
-  };
-  return <DataTable className="secrets" {...props}/>;
+  if(loading) {
+    return <DataTable className="secrets" loading={true} columns={tableColumns}/>;
+  }
+
+  return <DataTable className="secrets"
+    loading={false}
+    columns={tableColumns}
+    data={data}
+    detailable={true}
+    detailed={detailed}
+    detailsFactory={detailsFactory}
+    onRowClick={onRowClick}/>
 }
 
 SecretsTable.contextTypes = {

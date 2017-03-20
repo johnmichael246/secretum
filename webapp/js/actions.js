@@ -23,7 +23,6 @@ module.exports = {
   GROUPS_PAGE: {
     QUERY: 'groups-page/query',
     INJECT: 'groups-page/inject',
-    DETAIL: 'groups-page/detail',
   },
   SHOW_MODAL: 'show-modal',
   HIDE_MODAL: 'hide-modal',

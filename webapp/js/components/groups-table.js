@@ -1,4 +1,5 @@
-// Copyright 2017 Alex Lementa
+// @flow
+// Copyright 2017 Alex Lementa, Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,62 +15,74 @@
 
 module.exports = GroupsTable;
 
-const { ep, epc, ec } = require('../ui.js');
-const DataTable = require('./data-table.js');
-const GroupForm = require('./group-form.js');
+import DataTable from './data-table.js';
+import GroupForm from './group-form.js';
+
+import type {
+  DataTableProps,
+  LoadingDataTableProps,
+  LoadedDataTableProps
+} from './data-table.js';
+import type { GroupFormProps, Group } from './group-form.js';
+
+export type GroupsTableProps = {
+  onEdit: (group: Group) => void,
+  onRemove: (group: Group) => void,
+  groups: Array<Group>,
+  loading: boolean
+};
 
 function GroupToolbox(props) {
   const handlers = props.actionHandlers;
   const group = props.group;
-  const tools = [
-    epc("a", {
-      key: "edit",
-      onClick: (e) => {
-        e.stopPropagation();
-        handlers.onEdit(group);
-      }}, ep("i", {className: "fa fa-edit"})),
-    epc("a", {
-      key: "remove",
-      onClick: (e) => {
-        e.stopPropagation();
-        handlers.onRemove(group);
-      }}, ep("i", {className: "fa fa-remove"}))];
-  return ec("div", tools);
-}
 
-function merge(a1, a2) {
-  return a1.map((a,i) => Object.assign(a,a2[i]));
-}
-
-function GroupsTable(props) {
-  const transform = groups => {
-    const actions = groups.map(g => ({
-      actions: ep(GroupToolbox, {group: g, actionHandlers: props.actionHandlers})
-    }));
-    return merge(groups, actions);
+  const onEdit = (e) => {
+    e.stopPropagation();
+    handlers.onEdit(group);
   };
 
-  const detailsFactory = (group) => {
-    const topActions = [
-      {label: 'Edit', handler: () => props.actionHandlers.onEdit(group), icon: 'edit'},
-      {label: 'Remove', handler: () => props.actionHandlers.onRemove(group), icon: 'remove'}
-      
-    ];
-    return ep(GroupForm, {
-      className: "secret-details",
-      groupId: group.id,
-      readOnly: true,
-      topActions: topActions
-    });
+  const onRemove = (e) => {
+    e.stopPropagation();
+    handlers.onRemove(group);
   };
 
-  const data = props.groups instanceof Promise ?  props.groups.then(transform) : transform(props.groups);
-  const columns = {id: 'ID', name: 'Group', actions: 'Actions'};
-  
-  return ep(DataTable, {
-    className: "groups",
-    columns: columns,
-    data: data,
-    detailsFactory: props.details === undefined || props.details ? detailsFactory : undefined
-  });
+  return (
+    <div>
+      <a key="edit" onClick={onEdit}>
+        <i className="fa fa-edit"/>
+      </a>
+      <a key="remove" onClick={onRemove}>
+        <i className="fa fa-remove"/>
+      </a>
+    </div>
+  );
+}
+
+function GroupsTable({
+  loading=false,
+  groups=[],
+  onEdit,
+  onRemove
+}: GroupsTableProps) {
+
+  const transform = group => {
+    const instrumented = Object.create(group);
+    instrumented.actions = (
+      <GroupToolbox group={group} actionHandlers={{onEdit, onRemove}}/>
+    );
+    return instrumented;
+  };
+
+  const data = loading ? [] : groups.map(transform);
+  const tableColumns = {id: 'ID', name: 'Group', actions: 'Actions'};
+
+  if(loading) {
+    return <DataTable loading={true} className="groups" columns={tableColumns}/>;
+  }
+
+  return <DataTable className="groups"
+    loading={false}
+    columns={tableColumns}
+    data={data}
+    detailable={false}/>
 }

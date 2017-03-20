@@ -37,7 +37,7 @@ function load(config) {
 
     openRequest.onupgradeneeded = () => {
       const db = openRequest.result;
-      db.onerror = console.error;
+      //db.onerror = console.error;
 
       const localSchema = {
         secrets: {

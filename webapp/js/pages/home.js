@@ -36,23 +36,15 @@ class HomePage extends React.Component {
   constructor(props: any, context: any) {
     super(props);
     this.context = context;
-
     this.state = {loading: true, query: {}};
-    this.context.redux.subscribe(_ => {
-      const state = this.context.redux.getState();
-      if ('home' in state) {
-        this.setState(state.home);
-      }
-    });
   }
 
   _onSearch = (query: SecretsQuery) => {
-    this.context.redux.dispatch({type: actions.HOME_QUERY, query});
+    this.context.redux.dispatch({type: actions.HOME_PAGE.QUERY, query});
     this.context.store.findSecrets(query).then(secrets => {
-      this.context.redux.dispatch({type: actions.HOME_INJECT, secrets});
+      this.context.redux.dispatch({type: actions.HOME_PAGE.INJECT, secrets});
     });
   }
-
 
   _onCopy = (secret: Secret) => {
     copyTextToClipboard(secret.password);
@@ -106,11 +98,18 @@ class HomePage extends React.Component {
   }
 
   _onSecretClick = (index: number) => {
-    this.context.redux.dispatch({type: actions.HOME_DETAIL, index});
+    this.context.redux.dispatch({type: actions.HOME_PAGE.DETAIL, index});
   }
 
 
   componentDidMount() {
+    this._unsubscribe = this.context.redux.subscribe(_ => {
+      const state = this.context.redux.getState();
+      if (state.page === 'home' && 'home' in state) {
+        this.setState(state.home);
+      }
+    });
+
     this._onSearch({});
 
     if(!document.body) throw 'React invariant violated!';
@@ -167,6 +166,12 @@ class HomePage extends React.Component {
       })
     ]);
   }
+
+  componentWillUnmount() {
+    if(this._unsubscribe) {
+      this._unsubscribe();
+    }
+  }
 };
 
 module.exports = HomePage;
@@ -182,7 +187,7 @@ function query(state, action) {
 }
 
 type HomeInjectAction = {
-  type: actions.HOME_INJECT,
+  type: actions.HOME_PAGE.INJECT,
   secrets: Array<Secret>
 };
 
@@ -229,14 +234,14 @@ function detail(state: LoadedState, action) {
 }
 
 function reduce(state = {query: {}, loading: true}, action) {
-  if (action.type === actions.HOME_QUERY) {
+  if (action.type === actions.HOME_PAGE.QUERY) {
     return query(state, action);
-  } else if (action.type === actions.HOME_INJECT) {
+  } else if (action.type === actions.HOME_PAGE.INJECT) {
     if(!state.loading) {
       throw new Error('Can not inject into, because not loading!');
     }
     return inject(state, action);
-  } else if (action.type === actions.HOME_DETAIL) {
+  } else if (action.type === actions.HOME_PAGE.DETAIL) {
     if(state.loading) {
       throw new Error('Can not detail a record, while loading!');
     }

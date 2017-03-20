@@ -31,6 +31,10 @@ require('../js/utils/array.js')();
 require('../js/utils/object.js')();
 require('../js/utils/set.js')();
 
+if(!Object.entries) {
+  require('object.entries').shim();
+}
+
 const initialState = {
   booted: false
 };
@@ -51,9 +55,9 @@ function navigate(page) {
 
 function rootReducer(state = initialState, action) {
   console.log(action);
-  
-  let newState = Object.assign({}, state);
-  
+
+  let newState = {...state};
+
   if(action.type === actions.NAVIGATE) {
     newState.page = action.page;
   } else if(action.type === actions.BOOT) {
@@ -63,16 +67,18 @@ function rootReducer(state = initialState, action) {
   } else if(action.type === actions.HIDE_MODAL) {
     delete newState.modal;
   }
-  
+
   if(newState.modal && newState.modal.component.reducer) {
     let newModalState = newState.modal.component.reducer(newState.modal.state, action);
     newState.modal = Object.assign({}, newState.modal, {state: newModalState});
   }
-  
+
   if(state.page === 'home') {
-    newState.home = Object.assign({}, state.home, HomePage.reducer(state.home, action));
+    newState.home = {...state.home, ...HomePage.reducer(state.home, action)};
+  } else if(state.page === 'groups') {
+    newState.groups = {...state.groups, ...GroupsPage.reducer(state.groups, action)};
   }
-  
+
   return newState;
 }
 
@@ -80,12 +86,12 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.redux = Redux.createStore(rootReducer.bind(this));
-    
+
     const extract = state => ({booted: state.booted, page: state.page, modal: state.modal});
-    
+
     this.state = extract(this.redux.getState());
     this.redux.subscribe(_ => this.setState(extract(this.redux.getState())));
-    
+
     load({
       endpoint: settings.service_url,
       idb_name: settings.idb_name,
@@ -98,15 +104,15 @@ class App extends React.Component {
       });
     });
   }
-  
+
   showModal(component, props) {
     this.redux.dispatch({type: actions.SHOW_MODAL, component, props});
   }
-  
+
   hideModal() {
     this.redux.dispatch({type: actions.HIDE_MODAL});
   }
-  
+
   getChildContext() {
     const context = { redux: this.redux };
     if (this.state.booted) {
@@ -116,20 +122,20 @@ class App extends React.Component {
     }
     return context;
   }
-  
+
   render() {
     if (!this.state.booted) {
       return epc('div', { className: 'loading' }, 'Application is loading...');
     }
-    
+
     const pageComponents = {
       home: HomePage,
       groups: GroupsPage,
       sync: SyncPage
     };
-    
+
     const currentPage = this.state.page;
-    
+
     const tabs = [
       ep(Button, {
         key: 'home', label: 'Secrets', icon: 'home', toggled: currentPage === 'home',
@@ -144,7 +150,7 @@ class App extends React.Component {
         handler: () => this.redux.dispatch(navigate('sync'))
       })
     ];
-    
+
     const children = [
       epc("div", {key: "header", className: "header"}, [
         epc("div", {key: "title", className: "title"}, "Secretum"),
@@ -153,11 +159,11 @@ class App extends React.Component {
       ep(pageComponents[currentPage], {key: currentPage}),
       epc("div", {key: "footer", className: "footer"}, tabs)
     ];
-    
+
     if (this.state.modal !== undefined) {
       children.push(epc('div', {key: 'modal', className: 'modal'}, ep(this.state.modal.component, this.state.modal.props)));
     }
-    
+
     return epc("div", {className: "app"}, children);
   }
 }
