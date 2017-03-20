@@ -1,5 +1,5 @@
 // @flow
-// Copyright 2017 Alex Lementa
+// Copyright 2017 Alex Lementa, Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class GroupsPage extends React.Component {
   }
 
   componentDidMount() {
-    this._unsubcribe = this.context.redux.subscribe(_ => {
+    this.unsubscribe = this.context.redux.subscribe(_ => {
       const state = this.context.redux.getState();
       if (state.page === 'groups' && 'groups' in state) {
         this.setState(state.groups);
@@ -126,8 +126,8 @@ class GroupsPage extends React.Component {
   }
 
   componentWillUnmount() {
-    if(this._unsubscribe) {
-      this._unsubscribe();
+    if(this.unsubscribe) {
+      this.unsubscribe();
     }
   }
 
