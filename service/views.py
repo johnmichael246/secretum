@@ -33,7 +33,7 @@ def pull(request):
         trunk = Trunk.objects.get(id=int(request.GET['vaultId']))
     except (KeyError, ValueError, ObjectDoesNotExist) as e:
         raise HttpResponseBadRequest('Invalid (or no) vault ID requested')
-    
+
     commits = Commit.objects.filter(trunk=trunk)
     if 'sinceCommitId' in request.GET:
         commits = commits.filter(id__gt=request.GET['sinceCommitId'])
@@ -52,8 +52,19 @@ def commit(request):
         return HttpResponseBadRequest('Vault ID was not specified')
 
     trunk = get_object_or_404(Trunk, id=request.GET['vaultId'])
-    commit = Commit(trunk=trunk, parent=trunk.commit_set.last(), device=request.META['REMOTE_ADDR'], delta=request.body.decode())
+    commit = Commit(
+        trunk=trunk,
+        parent=trunk.commit_set.last(),
+        device=request.META['REMOTE_ADDR'],
+        delta=request.body.decode()
+    )
     commit.save()
 
     c = commit
-    return JsonResponse({'id': c.id, 'posted': c.posted, 'vault': c.trunk.id, 'device': c.device, 'delta': c.delta})
+    return JsonResponse({
+        'id': c.id,
+        'posted': c.posted,
+        'vault': c.trunk.id,
+        'device': c.device,
+        'delta': c.delta
+    })

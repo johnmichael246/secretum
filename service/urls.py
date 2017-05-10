@@ -18,6 +18,6 @@ import service.views as views
 urlpatterns = [
     url(r'^$', views.hello, name="service-root"),
     url(r'^meta$', views.meta),
-    url(r'^fetch$', views.pull),
-    url(r'^save$', views.commit)
+    url(r'^pull$', views.pull),
+    url(r'^commit$', views.commit)
 ]

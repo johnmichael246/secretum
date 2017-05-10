@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class Mock {
+export default class MockBackend {
   constructor(vault) {
     this.vault = vault;
   }
-  
+
   fetch(lastId) {
     const result = this.vault.snapshots.filter(commit => (lastId === undefined) || (commit.id > lastId));
-    
+
     return Promise.resolve({
       vault: this.vault.vault,
       snapshots: result
     });
   }
 }
-
-module.exports = Mock;

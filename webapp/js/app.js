@@ -18,7 +18,7 @@ const Redux = require('redux');
 
 const HomePage = require('./pages/home.js');
 const GroupsPage = require('./pages/groups.js');
-const SyncPage = require('./pages/sync.js');
+import SyncPage from './pages/sync.js';
 
 const { e, ep, epc } = require('./ui.js');
 const { load } = require('./idb/loader.js');
@@ -34,6 +34,8 @@ require('../js/utils/set.js')();
 if(!Object.entries) {
   require('object.entries').shim();
 }
+
+window.Promise = require('bluebird');
 
 const initialState = {
   booted: false
@@ -73,10 +75,12 @@ function rootReducer(state = initialState, action) {
     newState.modal = Object.assign({}, newState.modal, {state: newModalState});
   }
 
-  if(state.page === 'home') {
-    newState.home = {...state.home, ...HomePage.reducer(state.home, action)};
-  } else if(state.page === 'groups') {
-    newState.groups = {...state.groups, ...GroupsPage.reducer(state.groups, action)};
+  if(newState.page === 'home') {
+    newState.home = HomePage.reducer(newState.home, action);
+  } else if(newState.page === 'groups') {
+    newState.groups = GroupsPage.reducer(newState.groups, action);
+  } else if(newState.page === 'sync') {
+    newState.sync = SyncPage.reducer(newState.sync, action);
   }
 
   return newState;
@@ -98,7 +102,7 @@ class App extends React.Component {
       indexedDBFactory: window.indexedDB
     }).then(facades => {
       this.store = facades.store;
-      this.syncer = facades.syncManager;
+      this.syncManager = facades.syncManager;
       this.store.findGroups().then(groups => {
         this.redux.dispatch(boot({cached: {groups}}));
       });
@@ -118,7 +122,7 @@ class App extends React.Component {
     if (this.state.booted) {
       context.app = this;
       context.store = this.store;
-      context.syncer = this.syncer;
+      context.syncManager = this.syncManager;
     }
     return context;
   }
@@ -142,7 +146,7 @@ class App extends React.Component {
         handler: () => this.redux.dispatch(navigate('home'))
       }),
       ep(Button, {
-        key: 'groups', label: 'Groups', icon: 'home', toggled: currentPage === 'groups',
+        key: 'groups', label: 'Groups', icon: 'folder', toggled: currentPage === 'groups',
         handler: () => this.redux.dispatch(navigate('groups'))
       }),
       ep(Button, {
@@ -171,7 +175,7 @@ class App extends React.Component {
 App.childContextTypes = {
   app: React.PropTypes.object,
   store: React.PropTypes.object,
-  syncer: React.PropTypes.object,
+  syncManager: React.PropTypes.object,
   redux: React.PropTypes.object
 };
 

@@ -33,7 +33,7 @@ export type SecretFormProps = {
 
 export type Secret = {
   id: number,
-  groupId: number,
+  groupId: ?number,
   resource: string,
   principal: string,
   password: string,
@@ -69,6 +69,8 @@ function SecretForm({
     return {key: group.id.toString(), value: group.name};
   });
 
+  groupOptions.unshift({key: '-1', value: 'No Group'});
+
   const formFields: Array<SomeField> = [
     {name: "id", type: "text", label: "ID", editable: false},
     {name: "groupId", type: "select", label: "Group", options: groupOptions, editable},
@@ -97,7 +99,10 @@ function SecretForm({
     data: secret,
     onSubmit,
     onCancel,
-    onEdit: data => onEdit({...data, groupId: parseInt(data.groupId)}),
+    onEdit: data => onEdit({
+      ...data,
+      groupId: data.groupId === '-1' ? null : parseInt(data.groupId)
+    }),
     actions: topActions,
     editable
   };

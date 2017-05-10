@@ -24,6 +24,9 @@ module.exports = {
     QUERY: 'groups-page/query',
     INJECT: 'groups-page/inject',
   },
+  SYNC_PAGE: {
+    INJECT: 'sync-page/inject'
+  },
   SHOW_MODAL: 'show-modal',
   HIDE_MODAL: 'hide-modal',
   SECRET_EDITOR: {
@@ -33,5 +36,9 @@ module.exports = {
   GROUP_EDITOR: {
     BOOT: 'group-editor/boot',
     EDIT: 'group-editor/edit'
+  },
+  SETUP_NATIVE_BACKEND: {
+    'BOOT': 'setup-native-backend/boot',
+    'EDIT': 'setup-native-backend/edit'
   }
 };

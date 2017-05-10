@@ -27,6 +27,8 @@
   text-align: center;
   font-weight: bold;
 
+  padding: 0.2em 0em;
+
   border-bottom: 1px solid $outer-crack;
 }
 
@@ -38,6 +40,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+
+  padding: 0em 0.1em;
 }
 
 .table__header {
@@ -46,10 +50,12 @@
   // Headers are fixed-height
   flex: 0 0 auto;
 
-  // Creates space matching the scrollbar in the body
-  overflow-y: scroll;
-  &::-webkit-scrollbar {
-    background-color: $outer-surface;
+  @media (pointer: fine) {
+    // Creates space matching the scrollbar in the body
+    overflow-y: scroll;
+    &::-webkit-scrollbar {
+      background-color: $outer-surface;
+    }
   }
 
   .table__cell {
@@ -214,10 +220,6 @@
 }
 
 .table--sync-changes {
-  .table__header, .table__body {
-    overflow-y: hidden;
-  }
-
   .table__cell {
     &--id {
       flex: 0 0 3ch;
@@ -225,6 +227,22 @@
     }
     &--action {
       flex: 0 0 5ch;
+    }
+  }
+}
+
+.table--sync-commits {
+  max-width: 30em;
+
+  .table__cell {
+    &--id {
+      flex: 0 1 3ch;
+      text-align: center;
+    }
+
+    &--device {
+      flex: 0 1 8ch;
+      text-align: center;
     }
   }
 }

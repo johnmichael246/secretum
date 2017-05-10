@@ -31,7 +31,7 @@ export type SecretEditorProps = {
 };
 
 const newSecretTemplate = {
-  groupId: 0,
+  groupId: -1,
   resource: '',
   principal: '',
   password: '',
@@ -43,11 +43,12 @@ class SecretEditorDialog extends React.Component {
 
   constructor(props: SecretEditorProps, context: any) {
     super(props);
-    this.context = context;
+    this.redux = context.redux;
+    this.store = context.store;
     this.state = initial;
   }
 
-  componentDidMount() {
+  async componentWillMount() {
     this.unsubscribe = this.context.redux.subscribe(_ => {
       let modal = this.context.redux.getState().modal;
       if(modal) {
@@ -55,8 +56,9 @@ class SecretEditorDialog extends React.Component {
       }
     });
 
-    let secret = this.props.secret || {...newSecretTemplate};
-    this.context.redux.dispatch({type: actions.SECRET_EDITOR.BOOT, secret});
+    const secret = this.props.secret || {...newSecretTemplate};
+    const groups = await this.store.findGroups();
+    this.redux.dispatch({type: actions.SECRET_EDITOR.BOOT, secret, groups});
   }
 
   componentWillUnmount() {
@@ -75,7 +77,7 @@ class SecretEditorDialog extends React.Component {
         key: "form",
         generator: true,
         secret: this.state.secret,
-        groups: this.context.redux.getState().cached.groups,
+        groups: this.state.groups,
         onSubmit: _ => this.props.onSubmit(this.context.redux.getState().modal.state.secret),
         onCancel: this.props.onCancel,
         onEdit: this._onEdit
@@ -100,7 +102,7 @@ class SecretEditorDialog extends React.Component {
 
 SecretEditorDialog.reducer = function(state = {booted: false}, action) {
   if(action.type === actions.SECRET_EDITOR.BOOT) {
-    return Object.assign({}, state, {booted: true, secret: action.secret});
+    return Object.assign({}, state, {booted: true, secret: action.secret, groups: action.groups});
   } else if(action.type === actions.SECRET_EDITOR.EDIT) {
     return Object.assign({}, state, {secret: action.secret});
   } else {
@@ -109,7 +111,8 @@ SecretEditorDialog.reducer = function(state = {booted: false}, action) {
 };
 
 SecretEditorDialog.contextTypes = {
-  redux: React.PropTypes.object
+  redux: React.PropTypes.object,
+  store: React.PropTypes.object
 };
 
 module.exports = SecretEditorDialog;

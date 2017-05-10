@@ -162,7 +162,7 @@ class HomePage extends React.Component {
         onSubmit: this._onSearch,
         keyword: this.state.query.keyword,
         group: this.state.query.group,
-        groups: this.context.store.findGroups()
+        groups: this.context.redux.getState().cached.groups
       })
     ]);
   }

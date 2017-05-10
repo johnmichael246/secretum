@@ -50,7 +50,7 @@ class GroupsPage extends React.Component {
     });
   }
 
-  _onEdit = (group: Group) => {
+  onEdit = (group: Group) => {
     const props = {
       group: group,
       onSubmit: (group: Group) => {
@@ -67,7 +67,7 @@ class GroupsPage extends React.Component {
     });
   }
 
- _onNew = () => {
+ onNew = () => {
    const props = {
      title: 'New Group',
      onSubmit: (group: Group) => {
@@ -83,37 +83,40 @@ class GroupsPage extends React.Component {
    });
  }
 
-  _onRemove(group: Group) {
+  onRemove = (group: Group) => {
     const groupFormProps = {
       key: "group",
       editable: false,
       group
     };
 
-    this.context.app.showModal(ConfirmDialog, {
-      content: [
-        <div key="question">Are you sure you would like to remove this group?</div>,
-        <GroupForm {...groupFormProps}/>
-      ],
-      onYes: () => {
-        this.context.store.removeGroup(group.id).then(this.refresh);
-        this.context.redux.dispatch({type: actions.HIDE_MODAL});
-      },
-      onNo: () => this.context.redux.dispatch({type: actions.HIDE_MODAL})
-    });
+    this.context.redux.dispatch({
+      type: actions.SHOW_MODAL,
+      component: ConfirmDialog,
+      props: {
+        content: [
+          <div key="question">Are you sure you would like to remove this group?</div>,
+          <GroupForm {...groupFormProps}/>
+        ],
+        onYes: () => {
+          this.context.store.removeGroup(group.id).then(this.refresh);
+          this.context.redux.dispatch({type: actions.HIDE_MODAL});
+        },
+        onNo: () => this.context.redux.dispatch({type: actions.HIDE_MODAL})
+      }});
   }
 
   render() {
     const groupsTableProps = {
       loading: this.state.loading,
       groups: this.state.groups,
-      onEdit: this._onEdit,
-      onRemove: this._onRemove,
+      onEdit: this.onEdit,
+      onRemove: this.onRemove,
       detailed: this.state.detailed
     };
     const buttonProps = {
       className: 'new-group',
-      handler: this._onNew,
+      handler: this.onNew,
       label: "New Group",
       icon: 'plus-square'
     };

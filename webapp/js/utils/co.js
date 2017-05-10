@@ -19,11 +19,11 @@ function co(fn, thenableFactory=Promise) {
   const process = (v, gen) => {
     const yielded = gen.next(v);
     if (yielded.done) {
-      return thenableFactory.resolve(yielded.value);
+      return Promise.resolve(yielded.value);
     }
-    
+
     if (yielded.value instanceof Array) {
-      return thenableFactory.all(yielded.value).then(newVals => process(newVals, gen));
+      return Promise.all(yielded.value).then(newVals => process(newVals, gen));
     } else {
       return Promise.resolve(yielded.value.then(newVal => process(newVal, gen)));
     }

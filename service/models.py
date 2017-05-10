@@ -38,7 +38,7 @@ class Commit(models.Model):
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
     posted = models.DateTimeField(default=datetime.now)
     device = models.CharField(max_length=100)
-    delta = models.CharField(max_length=99999999)
+    delta = models.TextField()
     trunk = models.ForeignKey(Trunk, on_delete=models.CASCADE)
     def __str__(self):
         return "{{id={}, to={}, by={}, at={}}}".format(self.id, self.trunk.name, self.device, self.posted)

@@ -14,7 +14,8 @@
 
 const { versionedIDBFactory } = require('./versioned.js');
 const Store = require('./store.js');
-const SyncManager = require('./sync-manager.js');
+
+import SyncManager from './sync-manager.js';
 
 module.exports = { load };
 
@@ -44,15 +45,16 @@ function load(config) {
           type: 'entity'
         },
         groups: {
-          type: 'entity',
-          initial: [{id: 0, name: 'Default Group'}]
+          type: 'entity'
         },
         _sync: {
           type: 'map',
           initial: {
-            backend: null,
-            commits: []
+            backend: null
           }
+        },
+        _commits: {
+          type: 'entity'
         }
       };
 

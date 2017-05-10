@@ -16,9 +16,16 @@ const SyncThenable = require('./sync-thenable.js');
 
 module.exports = { thenify };
 
-function thenify(request) {
+/*function thenify(request) {
   const ret = SyncThenable();
   request.onsuccess = () => ret.resolve(request.result);
   request.onerror = () => ret.reject(request.error);
   return ret;
+}*/
+
+function thenify(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 }

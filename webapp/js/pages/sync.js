@@ -1,3 +1,4 @@
+// @flow
 // Copyright 2016-2017 Danylo Vashchilenko
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,172 +14,132 @@
 // limitations under the License.
 
 /* global React */
-const { ep, epc } = require('../ui.js');
 const Button = require('../components/button.js');
-const DataTable = require('../components/data-table.js');
+import DataTable from '../components/data-table.js';
 const ConfirmDialog = require('../dialogs/confirm.js');
 
-module.exports = class SyncPage extends React.Component {
-  constructor(props, context) {
+import NativeConfigForm from '../components/configs/native-config-form.js';
+import SetupNativeBackend from '../dialogs/setup-native-backend.js';
+
+const actions = require('../actions.js');
+
+function summarizeChange(change) {
+  return {...change, id: change.record.id};
+}
+
+export default class SyncPage extends React.Component {
+
+  constructor(props: any, context: any) {
     super(props);
     this.context = context;
+    this.redux = context.redux;
+    this.syncManager = context.syncManager;
 
-    this.state = this._load();
+    this.state = {loading: true};
 
-    this._sync = this._sync.bind(this);
-    this._switch = this._switch.bind(this);
-    this._onVaultSelect = this._onVaultSelect.bind(this);
-    this._onClear = this._onClear.bind(this);
+    this.onSync = this.onSync.bind(this);
+    this.onClear = this.onClear.bind(this);
   }
 
-  _load() {
-    const work = [];
-    work.push(this.context.syncer.getSyncStatus().then(status => {
-      const update = {status: status};
-      if(status.vault !== null) {
-        update.vaultId = status.vault.id;
+  async componentWillMount() {
+    this.unsubscribe = this.redux.subscribe(_ => {
+      const state = this.redux.getState();
+      if(state.page === 'sync') {
+        this.setState(state.sync);
       }
-      this.setState(update);
-    }));
-    work.push(this.context.syncer.getUnsyncedChanges().then(changes => {
-      this.setState({changes: changes});
-    }));
-
-    Promise.all(work).then(() => {
-      this.setState({loading: false});
     });
 
-    this.context.syncer.findRemoteVaults().then(vaults => {
-      this.setState({vaults: vaults, selectedVaultId: (vaults[0]||{}).id});
-    });
+    const status = await this.syncManager.getSyncStatus();
+    const changes = await this.syncManager.getUnsyncedChanges();
+    this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
+  }
 
-    return {loading: true};
+  componentWillUnmount() {
+    if(this.unsubscribe) {
+      this.unsubscribe();
+    }
+  }
+
+  onSetup = () => {
+    const props: Object = {
+      onSubmit: (config) => {
+        const backend = {type: 'native', config};
+        this.syncManager.setup(backend);
+        this.redux.dispatch({
+          type: actions.SYNC_PAGE.INJECT,
+          status: Object.assign(this.state.status, {backend}),
+          changes: this.state.changes
+        });
+        this.redux.dispatch({type: actions.HIDE_MODAL});
+      },
+      onCancel: () => {
+        this.redux.dispatch({type: actions.HIDE_MODAL});
+      }
+    };
+
+    if(this.state.status.backend) {
+      props.config = this.state.status.backend.config;
+    }
+
+    this.redux.dispatch({type: actions.SHOW_MODAL, component: SetupNativeBackend, props});
+  }
+
+  async onSync() {
+    await this.syncManager.sync();
+    const status = await this.syncManager.getSyncStatus();
+    const changes = await this.syncManager.getUnsyncedChanges();
+    this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
+  }
+
+  async onClear() {
+    await this.syncManager.clear();
+    const status = await this.syncManager.getSyncStatus();
+    const changes = await this.syncManager.getUnsyncedChanges();
+    this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
   }
 
   render() {
     if(this.state.loading) {
-      return epc("div", {className: 'page sync'}, 'Fetching metadata from the server...');
-    } else if(this.state.syncing) {
-      return epc("div", {className: 'page sync'}, 'Syncing the vault with the server...');
-    } else {
-      const children = [];
-
-      if(this.state.status !== null) {
-        let status = this.state.status;
-        let vault = status.vault;
-        let snapshot = status.snapshot||{};
-
-        if(vault != null) {
-          let datum = {
-            id: 0,
-            vaultId: (vault.id)||'',
-            vaultName: (vault.name)||'',
-            lastSync: status.when||'',
-            lastDevice: snapshot.device||''
-          };
-
-          children.push(ep(DataTable, {
-            key: 'status',
-            className: 'sync-status',
-            title: 'Remote Vault',
-            columns: {
-              'vaultId': 'ID',
-              'vaultName': 'Name',
-              'lastSync': 'Last Sync',
-              'lastDevice': 'Last Device'
-            },
-            data: [datum]
-          }));
-
-        }
-      }
-
-      const hasLocalChanges = (this.state.changes||[]).length > 0;
-      if(hasLocalChanges || ((this.state.status||{}).vault||null) != null) {
-        const changes = this.state.changes
-          .filter(c => c.table === 'secrets')
-          .map(c => ({
-            action: c.operator,
-            id: c.record.id,
-            resource: c.record.resource,
-            principal: c.record.principal
-          }));
-
-        children.push(
-          ep(DataTable, {
-            key: 'changes',
-            className: 'sync-changes',
-            title: 'Unsynced Changes',
-            columns: {action: 'Action', id: 'ID', resource: 'Resource', principal: 'Principal'},
-            data: changes
-          })
-        );
-
-        if(hasLocalChanges) {
-          children.push(
-            ep(Button, {key: '!sync', label: 'Sync Now!', icon: 'server', handler: this._sync})
-          );
-        }
-      }
-
-      if(this.state.status.vault == null && this.state.vaults !== undefined) {
-        children.push(
-          epc('select', {key: 'vaults', value: this.state.selectedVaultId, onChange: this._onVaultSelect},
-            this.state.vaults.map(vault => epc('option', {key: vault.id, value: vault.id}, `${vault.name}`)))
-        );
-        children.push(
-          ep(Button, {key: '!switch', handler: this._switch, label: 'Connect', icon: 'plug'})
-        );
-      }
-
-      if(this.state.status.vault === null && this.state.changes.length > 0
-        || this.state.status.vault !== null && this.state.changes.length === 0) {
-        children.push(
-          ep(Button, {key: '!clear', label: 'Clear', icon: 'warning', handler: this._onClear})
-        );
-      }
-
-      return epc('div', {className: 'page page--sync'}, children);
+      return <div className="page page--sync">Loading...</div>;
     }
-  }
+    return (
+      <div className="page page--sync">
+        <h2>Backend:</h2>
+        <Button handler={this.onSetup} label='Change' icon='edit'/>
+        { this.state.status.backend && <NativeConfigForm editable={false} nativeConfig={this.state.status.backend.config}/> }
+        <Button handler={this.onClear} label='Erase all' icon='warning'/>
+        <DataTable
+          loading={false}
+          detailable={false}
+          key="changes"
+          className="sync-changes"
+          title="Unsynced Changes"
+          columns={{operator: 'Operator', table: 'Table', id: 'ID'}}
+          data={this.state.changes.map(summarizeChange)}/>
+        <DataTable
+          loading={false}
+          detailable={false}
+          key="commits"
+          className="sync-commits"
+          title="Recent Commits"
+          columns={{posted: 'Time', device: 'Device', id: 'ID'}}
+          data={Array.from(this.state.status.commits.values()).reverse().slice(0, 10)}/>
+        { this.state.status.backend && <Button handler={this.onSync} label='Sync' icon='refresh'/> }
+      </div>
+    );
 
-  _onClear() {
-    this.context.app.showModal(ConfirmDialog, {
-      content: 'Do you really want to clear the local store?',
-      onYes: () => {
-        this.context.store.clear().then(() => {
-          this.setState(this._load())
-        });
-        this.context.app.hideModal();
-      },
-      onNo: () => {
-        this.context.app.hideModal();
-      }
-    });
   }
+}
 
-  _onVaultSelect(event) {
-    return this.setState({selectedVaultId: parseInt(event.target.value)});
+SyncPage.reducer = function(state={loading: true}, action) {
+  if(action.type === actions.SYNC_PAGE.INJECT) {
+    return {...state, loading: false, status: action.status, changes: action.changes};
+  } else {
+    return state;
   }
+}
 
-  _sync() {
-    this.setState({syncing: true});
-    this.context.syncer.sync()
-      .then(status => this.setState({syncing: false, changes: [], status: status}));
-  }
-
-  _switch() {
-    this.setState({syncing: true});
-    this.context.syncer.setup(this.state.selectedVaultId)
-      .then(status => Promise.all([
-        Promise.resolve(status),
-        this.context.syncer.getUnsyncedChanges()
-      ])).then(([status, changes]) => this.setState({syncing: false, status: status, changes: changes}));
-  }
-};
-
-module.exports.contextTypes = {
-  syncer: React.PropTypes.object,
-  store: React.PropTypes.object,
-  app: React.PropTypes.object
+SyncPage.contextTypes = {
+  syncManager: React.PropTypes.object,
+  redux: React.PropTypes.object
 };

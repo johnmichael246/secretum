@@ -14,16 +14,40 @@
 
 require('isomorphic-fetch');
 
-class Native {
-  constructor({url, vaultId}) {
-    this.url = url;
-    this.vaultId = vaultId;
+export default class NativeBackend {
+  constructor(config) {
+    this.config = config;
   }
-  
-  fetch(lastId) {
-    const url = `${this.url}/fetch?vaultId=${this.vaultId}`+ (lastId === undefined ? '' : `sinceCommitId=${lastId}`);
-    return fetch(url).then(resp => resp.json()).then(result => result.snapshots);
+
+  // async connect() {
+  //   const url = `${this.config.url}`;
+  //   const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
+  //   return fetch(url, {
+  //     headers: {
+  //       'Authorization': auth
+  //     }
+  //   }).then(resp => resp.headers.get('Cookies')json()).then(result => result.snapshots);
+  // }
+
+  pull(sinceCommitId) {
+    const url = `${this.config.url}/pull?vaultId=${this.config.vaultName}`+ (sinceCommitId === undefined ? '' : `&sinceCommitId=${sinceCommitId}`);
+    const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
+    return fetch(url, {
+      headers: {
+        'Authorization': auth
+      }
+    }).then(resp => resp.json()).then(result => result.snapshots);
+  }
+
+  commit(changes) {
+    const url = `${this.config.url}/commit?vaultId=${this.config.vaultName}`;
+    const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': auth
+      },
+      body: JSON.stringify(changes)
+    }).then(resp => resp.json());
   }
 }
-
-module.exports = Native;

@@ -1,6 +1,6 @@
 {
   "name": "secretum",
-  "version": "0.1.0-dev",
+  "version": "0.2.0-dev",
   "scripts": {
     "clean": "gulp clean",
     "build": "gulp build",
@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "font-awesome": "^4.7.0",
+    "object.entries": "^1.0.4",
+    "prop-types": "^15.5.8",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
-    "object.entries": "^1.0.4"
+    "redux": "^3.6.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
@@ -20,6 +22,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-react": "^6.23.0",
     "babelify": "^7.3.0",
+    "base64-js": "^1.2.0",
     "bluebird": "^3.5.0",
     "browserify": "^14.1.0",
     "co": "^4.6.0",
@@ -29,7 +32,6 @@
     "eslint-plugin-react": "^6.8.0",
     "event-stream": "^3.3.4",
     "fake-indexeddb": "^1.0.11",
-    "flow-bin": "^0.41.0",
     "fs-extra": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-changed": "^2.0.0",

@@ -29,9 +29,9 @@
 	align-items: center;
 	width: 8em;
 
-  @media (pointer: coarse) {
-    font-size: 1.6em;
-  }
+  // @media (pointer: coarse) {
+  //   font-size: 1.6em;
+  // }
 
   &--toggled {
 		background-color: #71906f;
