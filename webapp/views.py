@@ -17,3 +17,6 @@ from django.conf import settings
 
 def home(request):
     return render(request, 'webapp/index.html', {'idb_name': settings.IDB_NAME, 'version': settings.VERSION})
+
+def manifest(request):
+    return render(request, 'webapp/manifest.json', {})

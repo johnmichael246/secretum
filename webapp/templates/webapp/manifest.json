@@ -1,7 +1,7 @@
 {
   "name": "Secretum",
   "short_name": "Secretum",
-  "start_url": ".",
+  "start_url": "{% url 'home' %}",
   "display": "fullscreen",
   "background_color": "#5f5f5f",
   "description": "An offline-ready mobile-friendly hackable password manager for the 21st century.",
