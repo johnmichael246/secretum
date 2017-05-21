@@ -21,6 +21,7 @@ export type NativeConfig = {
   vaultName: string,
   username: string,
   password: string,
+  device: string
 };
 
 export type NativeConfigFormProps = {
@@ -39,7 +40,8 @@ export default function NativeConfigForm(props: NativeConfigFormProps) {
     {type: "text", name: "url", label: "URL", editable: props.editable},
     {type: "text", name: "vaultName", label: "Vault", editable: props.editable},
     {type: "text", name: "username", label: "User", editable: props.editable},
-    {type: "password", name: "password", label: "Password", editable: props.editable}
+    {type: "password", name: "password", label: "Password", editable: props.editable},
+    {type: "text", name: "device", label: "Device", editable: props.editable}
   ];
 
   const dataFormProps: Object = {

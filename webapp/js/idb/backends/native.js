@@ -40,7 +40,7 @@ export default class NativeBackend {
   }
 
   commit(changes) {
-    const url = `${this.config.url}/commit?vaultId=${this.config.vaultName}`;
+    const url = `${this.config.url}/commit?device=${this.config.device}&vaultId=${this.config.vaultName}`;
     const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
     return fetch(url, {
       method: 'POST',

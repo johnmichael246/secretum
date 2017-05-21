@@ -102,6 +102,17 @@ export default class SyncPage extends React.Component {
     if(this.state.loading) {
       return <div className="page page--sync">Loading...</div>;
     }
+    function procCommit(commit) {
+      return {...commit,
+        date: formatDate(new Date(commit.posted)),
+        time: formatTime(new Date(commit.posted))
+      };
+    }
+    const commits = Array.from(this.state.status.commits.values())
+      .reverse()
+      .slice(0, 10)
+      .map(procCommit);
+
     return (
       <div className="page page--sync">
         <h2>Backend:</h2>
@@ -122,8 +133,8 @@ export default class SyncPage extends React.Component {
           key="commits"
           className="sync-commits"
           title="Recent Commits"
-          columns={{posted: 'Time', device: 'Device', id: 'ID'}}
-          data={Array.from(this.state.status.commits.values()).reverse().slice(0, 10)}/>
+          columns={{date: 'Date', time: 'Time', device: 'Device', id: 'ID'}}
+          data={commits}/>
         { this.state.status.backend && <Button handler={this.onSync} label='Sync' icon='refresh'/> }
       </div>
     );
@@ -143,3 +154,11 @@ SyncPage.contextTypes = {
   syncManager: React.PropTypes.object,
   redux: React.PropTypes.object
 };
+
+function formatDate(date) {
+  return `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`;
+}
+
+function formatTime(time) {
+  return `${time.getHours()}-${time.getMinutes()}-${time.getSeconds()}`;
+}

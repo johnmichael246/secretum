@@ -19,7 +19,7 @@
 
 .app {
   height: 100%;
-  
+
   display: flex;
   flex-direction: column;
 
@@ -30,7 +30,7 @@
     text-align: center;
     text-shadow: 0px 0px 10px rgba(255,255,255,0.5);
     box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
-    
+
     display: flex;
     flex-flow: column;
     flex: 0 0 auto;
@@ -64,6 +64,7 @@
     >.button {
       flex-grow: 1;
       max-width: none;
+      width: auto;
 
       &:not(:first-child) {
         border-left: 0px;
@@ -85,5 +86,3 @@
   'components/buttons',
   'components/data-form',
   'components/actions-box';
-
-

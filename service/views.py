@@ -55,7 +55,7 @@ def commit(request):
     commit = Commit(
         trunk=trunk,
         parent=trunk.commit_set.last(),
-        device=request.META['REMOTE_ADDR'],
+        device=request.GET['device'],
         delta=request.body.decode()
     )
     commit.save()

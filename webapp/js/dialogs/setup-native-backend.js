@@ -23,7 +23,8 @@ const newNativeConfigTemplate = {
   url: 'https://',
   vaultName: '',
   username: '',
-  password: ''
+  password: '',
+  device: ''
 };
 
 export default class SetupNativeBackend extends React.Component {
