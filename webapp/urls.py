@@ -16,6 +16,6 @@ from django.conf.urls import url
 import webapp.views as views
 
 urlpatterns = [
-    url(r'^manifest.json$', views.manifest),
+    url(r'^manifest.json$', views.manifest, name='manifest'),
     url(r'^$', views.home, name='home')
 ]
