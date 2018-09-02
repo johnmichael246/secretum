@@ -47,7 +47,7 @@ module.exports = class Store {
       for(let secret of secrets) {
         secret.groupName = secret.groupId === -1 ? 'No Group' : groups.get(secret.groupId).name;
       }
-
+      secrets.sort((a,b) => b.id - a.id);
       return secrets.filter(match);
     });
   }

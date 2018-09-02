@@ -21,6 +21,8 @@ const ConfirmDialog = require('../dialogs/confirm.js');
 import NativeConfigForm from '../components/configs/native-config-form.js';
 import SetupNativeBackend from '../dialogs/setup-native-backend.js';
 
+const moment = require('moment');
+
 const actions = require('../actions.js');
 
 function summarizeChange(change) {
@@ -156,9 +158,9 @@ SyncPage.contextTypes = {
 };
 
 function formatDate(date) {
-  return `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`;
+  return moment(date).format('MMM/DD/YYYY');
 }
 
 function formatTime(time) {
-  return `${time.getHours()}-${time.getMinutes()}-${time.getSeconds()}`;
+	  return moment(time).format('HH:mm ZZ');
 }
