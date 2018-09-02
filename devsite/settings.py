@@ -10,13 +10,16 @@ def get_contents(*args):
 
 
 # Core settings
-DEBUG = True
-SECRET_KEY = 'this-is-a-public-secret'
+DEBUG = os.getenv('DEBUG', True)
+SECRET_KEY = os.getenv('SECRET_KEY', 'this-is-a-public-secret')
 ROOT_URLCONF = 'devsite.urls'
+ALLOWED_HOSTS=['*']
 
 # Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = ['./dist', '.']
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = ['./dist']
+APPEND_SLASH = True
 
 # Secretum-specific settings
 IDB_NAME = 'secretum_dev'
@@ -26,10 +29,10 @@ VERSION = json.loads(get_contents('package.json'))['version']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
-        'PORT': 5432,
+        'NAME': os.getenv('DB_SCHEMA', 'postgres'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'HOST': os.getenv('DB_HOST', 'db'),
+        'PORT': os.getenv('DB_PORT', 5432),
     }
 }
 
