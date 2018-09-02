@@ -26,7 +26,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
+from datetime import datetime, timezone
 from django.db import models
 
 class Trunk(models.Model):
@@ -36,9 +36,9 @@ class Trunk(models.Model):
 
 class Commit(models.Model):
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
-    posted = models.DateTimeField(default=datetime.now)
+    posted = models.DateTimeField(default=lambda: datetime.now(timezone.utc))
     device = models.CharField(max_length=100)
-    delta = models.TextField()
+    delta = models.TextField(500000)
     trunk = models.ForeignKey(Trunk, on_delete=models.CASCADE)
     def __str__(self):
         return "{{id={}, to={}, by={}, at={}}}".format(self.id, self.trunk.name, self.device, self.posted)
