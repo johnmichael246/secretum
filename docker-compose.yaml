@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:9.4
+  web:
+    build: .
+    command: /secretum/start.sh
+    volumes:
+      - .:/secretum
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
