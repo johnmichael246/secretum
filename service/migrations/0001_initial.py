@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('posted', models.DateTimeField(default=datetime.datetime.now)),
                 ('device', models.CharField(max_length=100)),
-                ('delta', models.CharField(max_length=99999999)),
+                ('delta', models.CharField(max_length=500000)),
                 ('parent', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='service.Commit')),
             ],
         ),
