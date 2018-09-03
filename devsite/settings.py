@@ -22,7 +22,7 @@ STATICFILES_DIRS = ['./dist']
 APPEND_SLASH = True
 
 # Secretum-specific settings
-IDB_NAME = 'secretum_dev'
+IDB_NAME = 'secretum_master'
 VERSION = json.loads(get_contents('package.json'))['version']
 
 # Database backend used by the service
