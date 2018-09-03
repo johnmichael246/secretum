@@ -29,10 +29,11 @@ VERSION = json.loads(get_contents('package.json'))['version']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_SCHEMA', 'postgres'),
-        'USER': os.getenv('DB_USER', 'postgres'),
         'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': os.getenv('DB_PORT', 5432),
+        'NAME': os.getenv('DB_SCHEMA', 'postgres'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '')
     }
 }
 
