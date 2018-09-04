@@ -11,6 +11,7 @@ RUN apt-get -y -qq install nodejs
 
 WORKDIR /secretum
 
+
 RUN rm /etc/apache2/sites-enabled/*
 COPY apache.conf /etc/apache2/sites-enabled/
 
@@ -27,9 +28,14 @@ COPY webapp /secretum/webapp
 RUN npm run build
 
 COPY . /secretum/
-RUN . pyenv/bin/activate && ./manage.py collectstatic --no-input
 
+# Django Log File
 RUN mkdir /secretum/log
+RUN touch /secretum/log/django.log
+RUN chgrp -R www-data /secretum/log && chmod -R g+w /secretum/log
+
+# Django Static Folder
+RUN . pyenv/bin/activate && ./manage.py collectstatic --no-input
 
 EXPOSE 80
 CMD apachectl -D FOREGROUND
