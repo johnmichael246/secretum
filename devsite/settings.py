@@ -26,6 +26,7 @@ IDB_NAME = 'secretum_master'
 VERSION = json.loads(get_contents('package.json'))['version']
 
 # Database backend used by the service
+# Defaults match the docker image of postgres
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -76,6 +77,15 @@ TEMPLATES = [
     },
 ]
 
+AWS_REGION = os.getenv('AWS_REGION', None)
+
+if DEBUG:
+    LOGGING_HANDLERS = ['console']
+elif AWS_REGION is not None:
+    LOGGING_HANDLERS = ['file', 'cloudwatch']
+else:
+    LOGGING_HANDLERS = ['file']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -84,6 +94,11 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': '/secretum/log/django.log',
+            'formatter': 'verbose',
+        }
     },
     'formatters': {
         'verbose': {
@@ -92,10 +107,15 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
+            'handlers': LOGGING_HANDLERS,
+            'level': 'DEBUG' if DEBUG is True else 'INFO' 
+        },
+        'secretum': {
+            'handlers': LOGGING_HANDLERS,
+            'level': 'DEBUG' if DEBUG is True else 'INFO' 
         },
     },
+
 }
 
 WSGI_APPLICATION = 'devsite.wsgi.application'

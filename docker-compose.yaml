@@ -5,7 +5,7 @@ services:
     image: postgres:9.4
   web:
     build: .
-    command: /secretum/start.sh
+    command: /secretum/start-dev.sh
     volumes:
       - .:/secretum
     ports:

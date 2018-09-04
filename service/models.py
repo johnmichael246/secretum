@@ -28,11 +28,13 @@
 
 from datetime import datetime, timezone
 from django.db import models
+import json
 
 class Trunk(models.Model):
     name = models.CharField(max_length=100, unique=True)
     def __str__(self):
         return "{{id={}, name={}}}".format(self.id, self.name)
+
 
 class Commit(models.Model):
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
@@ -40,5 +42,9 @@ class Commit(models.Model):
     device = models.CharField(max_length=100)
     delta = models.TextField(500000)
     trunk = models.ForeignKey(Trunk, on_delete=models.CASCADE)
+    
+    def changes(self):
+        return json.loads(self.delta)
+
     def __str__(self):
         return "{{id={}, to={}, by={}, at={}}}".format(self.id, self.trunk.name, self.device, self.posted)

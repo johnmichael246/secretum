@@ -21,6 +21,9 @@ from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
 from service.models import Trunk, Commit
 
+import jsonschema
+import json
+
 def hello(request):
     return JsonResponse({'status': 'ok'})
 
@@ -51,12 +54,39 @@ def commit(request):
     if 'vaultId' not in request.GET:
         return HttpResponseBadRequest('Vault ID was not specified')
 
+    schema = {
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'required': ['record', 'operator', 'table'],
+            'properties': {
+                'operator': {'type': 'string'},
+                'table': {'type': 'string'},
+                'record': {
+                    'type': 'object',
+                    'required': ['id'],
+                    'properties': {'id': {'type': 'integer'}}
+                },
+            }
+        }
+    }
+
+    delta = request.body.decode()
+
+    try:
+        operations = json.loads(delta)
+        jsonschema.validate(operations, schema)
+    except json.JSONDecodeError as e:
+        return HttpResponseBadRequest(str(e))
+    except jsonschema.exceptions.ValidationError as e:
+        return HttpResponseBadRequest(str(e))
+
     trunk = get_object_or_404(Trunk, id=request.GET['vaultId'])
     commit = Commit(
         trunk=trunk,
         parent=trunk.commit_set.last(),
         device=request.GET['device'],
-        delta=request.body.decode()
+        delta=delta
     )
     commit.save()
 
