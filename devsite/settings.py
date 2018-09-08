@@ -6,16 +6,18 @@ from boto3.session import Session
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 def get_contents(*args):
     with open(os.path.join(BASE_DIR, *args), 'r') as file:
         return '\n'.join(file.readlines())
 
 
 # Core settings
-DEBUG = os.getenv('DEBUG', True)
+APP_ENV = os.getenv('APP_ENV')
+DEBUG = os.getenv('DEBUG')
 SECRET_KEY = os.getenv('SECRET_KEY', 'this-is-a-public-secret')
 ROOT_URLCONF = 'devsite.urls'
-ALLOWED_HOSTS=['*']
+ALLOWED_HOSTS = ['*']
 
 # Static files
 STATIC_URL = '/static/'
@@ -83,40 +85,40 @@ AWS_REGION = os.getenv('AWS_REGION')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 
-boto3_session = Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-                        region_name=AWS_REGION)
-
-LOGGING_HANDLERS = ['file']
+LOGGING_HANDLERS = {
+    'file': {
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(BASE_DIR, 'log', 'django.log'),
+        'formatter': 'verbose',
+    }
+}
 
 if DEBUG:
-    LOGGING_HANDLERS.append('console')
+    LOGGING_HANDLERS['console'] = {
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose'
+    }
 
 if AWS_REGION is not None:
-    LOGGING_HANDLERS.append('cloudwatch')
+    boto3_session = Session(
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION
+    )
+
+    LOGGING_HANDLERS['cloudwatch'] = {
+        'level': 'DEBUG',
+        'class': 'watchtower.CloudWatchLogHandler',
+        'boto3_session': boto3_session,
+        'log_group': 'secretum',
+        'stream_name': APP_ENV,
+        'formatter': 'verbose',
+    }
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': '/secretum/log/django.log',
-            'formatter': 'verbose',
-        },
-        'cloudwatch': {
-            'level': 'DEBUG',
-            'class': 'watchtower.CloudWatchLogHandler',
-            'boto3_session': boto3_session,
-            'log_group': 'secretum',
-            'stream_name': 'docker-local',
-            'formatter': 'verbose',
-        },
-    },
+    'handlers': LOGGING_HANDLERS,
     'formatters': {
         'verbose': {
             'format': '%(asctime)s %(levelname)s %(module)s %(message)s'
@@ -124,12 +126,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': LOGGING_HANDLERS,
-            'level': 'DEBUG' if DEBUG is True else 'INFO' 
+            'handlers': list(LOGGING_HANDLERS.keys()),
+            'level': 'DEBUG' if DEBUG is True else 'INFO'
         },
         'secretum': {
-            'handlers': LOGGING_HANDLERS,
-            'level': 'DEBUG' if DEBUG is True else 'INFO' 
+            'handlers': list(LOGGING_HANDLERS.keys()),
+            'level': 'DEBUG' if DEBUG is True else 'INFO'
         },
     },
 
@@ -138,19 +140,22 @@ LOGGING = {
 WSGI_APPLICATION = 'devsite.wsgi.application'
 
 AUTH_PASSWORD_VALIDATORS = []
-#     {
-#         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-#     },
-#     {
-#         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-#     },
-#     {
-#         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-#     },
-#     {
-#         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-#     },
-# ]
+
+if not DEBUG:
+    AUTH_PASSWORD_VALIDATORS = [
+        {
+            'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        },
+        {
+            'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        },
+    ]
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
