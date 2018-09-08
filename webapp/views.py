@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.conf import settings
+
 
 def home(request):
     return render(request, 'webapp/index.html', {'idb_name': settings.IDB_NAME, 'version': settings.VERSION})
 
+
 def manifest(request):
     return render(request, 'webapp/manifest.json', {})
+
+
+def service_worker(request):
+    return render_to_response('webapp/sw.js', content_type='application/javascript')
