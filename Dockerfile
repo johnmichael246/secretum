@@ -33,6 +33,7 @@ COPY . /secretum/
 RUN mkdir /secretum/log
 RUN touch /secretum/log/django.log
 RUN chgrp -R www-data /secretum/log && chmod -R g+w /secretum/log
+RUN mv version /secretum/log/version
 
 # Django Static Folder
 RUN . pyenv/bin/activate && ./manage.py collectstatic --no-input

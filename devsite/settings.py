@@ -8,13 +8,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_contents(*args):
-    with open(os.path.join(BASE_DIR, *args), 'r') as file:
+    path = os.path.join(BASE_DIR, *args)
+
+    if not os.path.isfile(path):
+        return ''
+
+    with open(path, 'r') as file:
         return '\n'.join(file.readlines())
 
 
 # Core settings
 APP_ENV = os.getenv('APP_ENV')
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG') == 'true'
 SECRET_KEY = os.getenv('SECRET_KEY', 'this-is-a-public-secret')
 ROOT_URLCONF = 'devsite.urls'
 ALLOWED_HOSTS = ['*']
@@ -27,7 +32,7 @@ APPEND_SLASH = True
 
 # Secretum-specific settings
 IDB_NAME = 'secretum_master'
-VERSION = json.loads(get_contents('package.json'))['version']
+VERSION = get_contents(os.path.join(BASE_DIR, 'log', 'version'))
 
 # Database backend used by the service
 # Defaults match the docker image of postgres

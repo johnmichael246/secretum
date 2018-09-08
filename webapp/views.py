@@ -11,13 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 
 from django.shortcuts import render, render_to_response
 from django.conf import settings
 
+def get_version():
+    if settings.DEBUG:
+        return datetime.datetime.now().isoformat()
+    else:
+        return settings.VERSION
 
 def home(request):
-    return render(request, 'webapp/index.html', {'idb_name': settings.IDB_NAME, 'version': settings.VERSION})
+    return render(request, 'webapp/index.html', {'idb_name': settings.IDB_NAME, 'version': get_version()})
 
 
 def manifest(request):
@@ -25,4 +31,4 @@ def manifest(request):
 
 
 def service_worker(request):
-    return render_to_response('webapp/sw.js', content_type='application/javascript')
+    return render_to_response('webapp/sw.js', content_type='application/javascript', context={'version': get_version()})

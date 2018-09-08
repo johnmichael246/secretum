@@ -9,6 +9,8 @@ REMOTE_BASE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REP
 echo "Building started $(date)"
 echo "Building tag $IMAGE_TAG from $IMAGE_HASH"
 
+printf $IMAGE_HASH >version
+
 docker pull $REMOTE_BASE:$IMAGE_TAG || true
 docker build \
 	--cache-from $REMOTE_BASE:$IMAGE_TAG \
