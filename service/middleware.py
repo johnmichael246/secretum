@@ -39,8 +39,11 @@ class RequireBasicAuthentication():
             username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
             user = authenticate(username=username, password=password)
             if user is not None:
+                logging.INFO('User authenticated')
                 login(request, user)
                 return None
+            else:
+                logging.getLogger('secretum').warning('User authentication failed')
 
         resp = HttpResponse(status=401)
         resp['WWW-Authenticate'] = 'Basic realm="Secretum"'

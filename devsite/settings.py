@@ -2,6 +2,8 @@ import os
 import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from boto3.session import Session
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_contents(*args):
@@ -77,14 +79,21 @@ TEMPLATES = [
     },
 ]
 
-AWS_REGION = os.getenv('AWS_REGION', None)
+AWS_REGION = os.getenv('AWS_REGION')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+
+boto3_session = Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                        region_name=AWS_REGION)
+
+LOGGING_HANDLERS = ['file']
 
 if DEBUG:
-    LOGGING_HANDLERS = ['console']
-elif AWS_REGION is not None:
-    LOGGING_HANDLERS = ['file', 'cloudwatch']
-else:
-    LOGGING_HANDLERS = ['file']
+    LOGGING_HANDLERS.append('console')
+
+if AWS_REGION is not None:
+    LOGGING_HANDLERS.append('cloudwatch')
 
 LOGGING = {
     'version': 1,
@@ -98,7 +107,15 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/secretum/log/django.log',
             'formatter': 'verbose',
-        }
+        },
+        'cloudwatch': {
+            'level': 'DEBUG',
+            'class': 'watchtower.CloudWatchLogHandler',
+            'boto3_session': boto3_session,
+            'log_group': 'secretum',
+            'stream_name': 'docker-local',
+            'formatter': 'verbose',
+        },
     },
     'formatters': {
         'verbose': {

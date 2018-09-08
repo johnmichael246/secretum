@@ -4,11 +4,13 @@ services:
   db:
     image: postgres:9.4
   web:
+    env_file:
+    - .env
     build: .
     command: /secretum/start-dev.sh
     volumes:
-      - .:/secretum
+    - .:/secretum
     ports:
-      - "5000:80"
+    - "5000:80"
     depends_on:
-      - db
+    - db
