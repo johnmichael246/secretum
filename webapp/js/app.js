@@ -14,6 +14,11 @@
 
 /* global settings React ReactDOM */
 
+import ZingTouch from 'zingtouch';
+
+import Raven from 'raven-js';
+
+
 Raven.config('https://d78c25b39d524b5b8c5301434c0f254c@sentry.io/1277211').install()
 
 const Redux = require('redux');
@@ -22,10 +27,12 @@ const HomePage = require('./pages/home.js');
 const GroupsPage = require('./pages/groups.js');
 import SyncPage from './pages/sync.js';
 
-const { e, ep, epc } = require('./ui.js');
-const { load } = require('./idb/loader.js');
+const {e, ep, epc} = require('./ui.js');
+const {load} = require('./idb/loader.js');
 const Button = require('./components/button.js');
 const actions = require('./actions.js');
+
+import PropTypes from 'prop-types';
 
 // Instrumenting global objects with custom improvements...
 // This will be called only once, when this script is loaded.
@@ -33,7 +40,7 @@ require('../js/utils/array.js')();
 require('../js/utils/object.js')();
 require('../js/utils/set.js')();
 
-if(!Object.entries) {
+if (!Object.entries) {
   require('object.entries').shim();
 }
 
@@ -62,26 +69,26 @@ function rootReducer(state = initialState, action) {
 
   let newState = {...state};
 
-  if(action.type === actions.NAVIGATE) {
+  if (action.type === actions.NAVIGATE) {
     newState.page = action.page;
-  } else if(action.type === actions.BOOT) {
+  } else if (action.type === actions.BOOT) {
     newState = Object.assign(newState, action.opts, {booted: true, page: 'home'});
-  } else if(action.type === actions.SHOW_MODAL) {
+  } else if (action.type === actions.SHOW_MODAL) {
     newState.modal = {component: action.component, props: action.props};
-  } else if(action.type === actions.HIDE_MODAL) {
+  } else if (action.type === actions.HIDE_MODAL) {
     delete newState.modal;
   }
 
-  if(newState.modal && newState.modal.component.reducer) {
+  if (newState.modal && newState.modal.component.reducer) {
     let newModalState = newState.modal.component.reducer(newState.modal.state, action);
     newState.modal = Object.assign({}, newState.modal, {state: newModalState});
   }
 
-  if(newState.page === 'home') {
+  if (newState.page === 'home') {
     newState.home = HomePage.reducer(newState.home, action);
-  } else if(newState.page === 'groups') {
+  } else if (newState.page === 'groups') {
     newState.groups = GroupsPage.reducer(newState.groups, action);
-  } else if(newState.page === 'sync') {
+  } else if (newState.page === 'sync') {
     newState.sync = SyncPage.reducer(newState.sync, action);
   }
 
@@ -109,6 +116,37 @@ class App extends React.Component {
         this.redux.dispatch(boot({cached: {groups}}));
       });
     });
+
+    this.ref = React.createRef();
+  }
+
+  componentDidMount() {
+    const app = this;
+    const element = this.ref.current;
+
+    const activeRegion = ZingTouch.Region(element, true, false);
+
+    const pages = ['home', 'groups', 'sync'];
+    var shift = 0;
+
+    activeRegion.bind(element, 'swipe', function (event) {
+      const data = event.detail.data[0];
+      const angle = data.currentDirection;
+      const swipeRight = angle > 270 || angle < 90;
+      const distance = data.distance;
+
+      console.log('Swipe Event', angle, swipeRight ? ' Right' : 'Left', distance, data);
+
+      const newShift = shift + (swipeRight ? -1 : 1);
+      if (newShift >= 0 && newShift < pages.length && distance > 20) {
+        shift = newShift;
+        app.redux.dispatch(navigate(pages[shift]));
+
+        event.preventDefault();
+      }
+
+
+    });
   }
 
   showModal(component, props) {
@@ -120,7 +158,7 @@ class App extends React.Component {
   }
 
   getChildContext() {
-    const context = { redux: this.redux };
+    const context = {redux: this.redux};
     if (this.state.booted) {
       context.app = this;
       context.store = this.store;
@@ -131,7 +169,7 @@ class App extends React.Component {
 
   render() {
     if (!this.state.booted) {
-      return epc('div', { className: 'loading' }, 'Application is loading...');
+      return epc('div', {className: 'loading', ref: this.ref}, 'Application is loading...');
     }
 
     const pageComponents = {
@@ -167,18 +205,21 @@ class App extends React.Component {
     ];
 
     if (this.state.modal !== undefined) {
-      children.push(epc('div', {key: 'modal', className: 'modal'}, ep(this.state.modal.component, this.state.modal.props)));
+      children.push(epc('div', {
+        key: 'modal',
+        className: 'modal'
+      }, ep(this.state.modal.component, this.state.modal.props)));
     }
 
-    return epc("div", {className: "app"}, children);
+    return epc("div", {className: "app", ref: this.ref}, children);
   }
 }
 
 App.childContextTypes = {
-  app: React.PropTypes.object,
-  store: React.PropTypes.object,
-  syncManager: React.PropTypes.object,
-  redux: React.PropTypes.object
+  app: PropTypes.object,
+  store: PropTypes.object,
+  syncManager: PropTypes.object,
+  redux: PropTypes.object
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -194,10 +235,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', {scope: '/'})
-  .then(function(reg) {
-    // registration worked
-    console.log('Registration succeeded. Scope is ' + reg.scope);
-  }).catch(function(error) {
+    .then(function (reg) {
+      // registration worked
+      console.log('Registration succeeded. Scope is ' + reg.scope);
+    }).catch(function (error) {
     // registration failed
     console.log('Registration failed with ' + error);
   });
@@ -223,3 +264,5 @@ if ('serviceWorker' in navigator) {
 // 		}
 //   });
 // }
+
+

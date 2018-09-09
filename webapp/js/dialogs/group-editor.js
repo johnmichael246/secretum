@@ -18,6 +18,7 @@ import GroupForm from '../components/group-form.js';
 import actions from '../actions.js';
 
 import type { Group, EditGroupFormProps } from '../components/group-form.js';
+import PropTypes from 'prop-types';
 
 type GroupEditorProps = {
   group?: Group,
@@ -100,6 +101,6 @@ GroupEditorDialog.reducer = function(state = {booted: false}, action) {
 
 module.exports = GroupEditorDialog;
 module.exports.contextTypes = {
-  app: React.PropTypes.object,
-  redux: React.PropTypes.object
+  app: PropTypes.object,
+  redux: PropTypes.object
 };

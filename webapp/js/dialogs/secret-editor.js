@@ -19,6 +19,7 @@ const { ep, epc } = require('../ui.js');
 const actions = require('../actions.js');
 
 import type { SecretFormProps, Secret } from '../components/secret-form.js';
+import PropTypes from 'prop-types';
 
 const initial = {
   booted: false
@@ -111,8 +112,8 @@ SecretEditorDialog.reducer = function(state = {booted: false}, action) {
 };
 
 SecretEditorDialog.contextTypes = {
-  redux: React.PropTypes.object,
-  store: React.PropTypes.object
+  redux: PropTypes.object,
+  store: PropTypes.object
 };
 
 module.exports = SecretEditorDialog;

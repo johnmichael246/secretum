@@ -78,10 +78,10 @@ function bundleJS() {
 
 function vendor() {
   return es.merge([
-    gulp.src('./node_modules/react/dist/react.js')
+    gulp.src('./node_modules/react/umd/react.development.js')
       .pipe(gulp.changed(path.join(DEST, 'js')))
       .pipe(gulp.dest(path.join(DEST, 'js'))),
-    gulp.src('./node_modules/react-dom/dist/react-dom.js')
+    gulp.src('./node_modules/react-dom/umd/react-dom.development.js')
       .pipe(gulp.changed(path.join(DEST, 'js')))
       .pipe(gulp.dest(path.join(DEST, 'js'))),
     gulp.src('./node_modules/font-awesome/css/font-awesome.min.css')
@@ -104,7 +104,7 @@ function copyStaticFiles() {
 
 gulp.task('build-watch', ['build'], _ => {
   browserifyBundle = watchify(browserify(browserifyOpts));
-  return gulp.watch(['./webapp/js/**', './webapp/scss/**'], ['build' ]);
+  return gulp.watch(['./webapp/js/**', './webapp/scss/**', './package*.json'], ['build' ]);
 });
 
 gulp.task('build', _ => {

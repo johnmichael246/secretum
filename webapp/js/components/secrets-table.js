@@ -27,6 +27,8 @@ import type {
 } from './data-table.js';
 import type { SecretFormProps, Secret} from './secret-form.js';
 
+import PropTypes from 'prop-types';
+
 function SecretToolbox({secret, onCopy, onEdit, onRemove}) {
   const onCopyClick = e => { e.stopPropagation(); onCopy(secret);};
   const onEditClick = e => { e.stopPropagation(); onEdit(secret);};
@@ -112,5 +114,5 @@ function SecretsTable({
 }
 
 SecretsTable.contextTypes = {
-  redux: React.PropTypes.object
+  redux: PropTypes.object
 };

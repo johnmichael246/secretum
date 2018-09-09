@@ -13,10 +13,9 @@ self.addEventListener('install', function (event) {
                 '/static/webapp/css/font-awesome.min.css',
                 '/static/webapp/fonts/fontawesome-webfont.woff2?v=4.7.0',
                 '/static/webapp/fonts/Orbitron-Regular.ttf',
-                '/static/webapp/js/react.js',
-                '/static/webapp/js/react-dom.js',
+                '/static/webapp/js/react.development.js',
+                '/static/webapp/js/react-dom.development.js',
                 '/static/webapp/js/bundle.js',
-                'https://cdn.ravenjs.com/3.26.4/raven.min.js'
             ]);
         })
     );

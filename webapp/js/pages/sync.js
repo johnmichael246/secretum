@@ -21,6 +21,8 @@ const ConfirmDialog = require('../dialogs/confirm.js');
 import NativeConfigForm from '../components/configs/native-config-form.js';
 import SetupNativeBackend from '../dialogs/setup-native-backend.js';
 
+import PropTypes from 'prop-types';
+
 const moment = require('moment');
 
 const actions = require('../actions.js');
@@ -153,8 +155,8 @@ SyncPage.reducer = function(state={loading: true}, action) {
 }
 
 SyncPage.contextTypes = {
-  syncManager: React.PropTypes.object,
-  redux: React.PropTypes.object
+  syncManager: PropTypes.object,
+  redux: PropTypes.object
 };
 
 function formatDate(date) {

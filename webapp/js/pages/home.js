@@ -24,6 +24,7 @@ const Button = require('../components/button.js');
 
 import type { SecretsTableProps } from '../components/secrets-table.js';
 import type { Secret, SecretFormProps } from '../components/secret-form.js';
+import PropTypes from 'prop-types';
 
 const actions = require('../actions.js');
 
@@ -177,9 +178,9 @@ class HomePage extends React.Component {
 module.exports = HomePage;
 
 module.exports.contextTypes = {
-  app: React.PropTypes.object,
-  store: React.PropTypes.object,
-  redux: React.PropTypes.object
+  app: PropTypes.object,
+  store: PropTypes.object,
+  redux: PropTypes.object
 };
 
 function query(state, action) {

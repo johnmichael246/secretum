@@ -9,12 +9,15 @@
   },
   "dependencies": {
     "font-awesome": "^4.7.0",
+    "isomorphic-fetch": "^2.2.1",
     "moment": "^2.22.2",
     "object.entries": "^1.0.4",
-    "prop-types": "^15.5.8",
-    "react": "^15.4.1",
-    "react-dom": "^15.4.1",
-    "redux": "^3.6.0"
+    "prop-types": "^15.6.2",
+    "raven-js": "^3.27.0",
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0",
+    "redux": "^3.6.0",
+    "zingtouch": "^1.0.6"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

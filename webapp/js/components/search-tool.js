@@ -15,6 +15,8 @@
 /* global React */
 const { ep, epc } = require('../ui.js');
 
+import PropTypes from 'prop-types';
+
 module.exports = class SearchTool extends React.Component {
 	constructor(props) {
 		super(props);
@@ -68,11 +70,11 @@ module.exports = class SearchTool extends React.Component {
 }
 
 module.exports.propTypes = {
-	keyword: React.PropTypes.string,
-	group: React.PropTypes.number,
-	groups: React.PropTypes.oneOfType([
-		React.PropTypes.arrayOf(React.PropTypes.object),
-		React.PropTypes.instanceOf(Promise)
+	keyword: PropTypes.string,
+	group: PropTypes.number,
+	groups: PropTypes.oneOfType([
+		PropTypes.arrayOf(PropTypes.object),
+		PropTypes.instanceOf(Promise)
 	]).isRequired,
-	onSubmit: React.PropTypes.func.isRequired,
+	onSubmit: PropTypes.func.isRequired,
 };

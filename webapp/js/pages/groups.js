@@ -24,6 +24,7 @@ import GroupForm from '../components/group-form.js';
 const actions = require('../actions.js');
 import type GroupEditorProps from '../dialogs/group-editor.js';
 import type { Group } from '../components/group-form.js';
+import PropTypes from 'prop-types';
 
 class GroupsPage extends React.Component {
   constructor(props: any, context: any) {
@@ -149,8 +150,8 @@ class GroupsPage extends React.Component {
 }
 
 GroupsPage.contextTypes = {
-  redux: React.PropTypes.object,
-  store: React.PropTypes.object
+  redux: PropTypes.object,
+  store: PropTypes.object
 };
 
 module.exports = GroupsPage;

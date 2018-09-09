@@ -19,6 +19,9 @@ import NativeConfigForm from '../components/configs/native-config-form.js';
 import type NativeConfig from '../components/configs/native-config-form.js';
 import type NativeConfigFormProps from '../components/configs/native-config-form.js';
 
+
+import PropTypes from 'prop-types';
+
 const newNativeConfigTemplate = {
   url: 'https://',
   vaultName: '',
@@ -88,5 +91,5 @@ SetupNativeBackend.reducer = function(state = {booted: false}, action) {
 
 
 SetupNativeBackend.contextTypes = {
-  redux: React.PropTypes.object
+  redux: PropTypes.object
 };
