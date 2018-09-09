@@ -29,25 +29,61 @@ export default class NativeBackend {
   //   }).then(resp => resp.headers.get('Cookies')json()).then(result => result.snapshots);
   // }
 
-  pull(sinceCommitId) {
-    const url = `${this.config.url}/pull?vaultId=${this.config.vaultName}`+ (sinceCommitId === undefined ? '' : `&sinceCommitId=${sinceCommitId}`);
-    const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
-    return fetch(url, {
-      headers: {
-        'Authorization': auth
-      }
-    }).then(resp => resp.json()).then(result => result.snapshots);
+  async pull(sinceCommitId) {
+    const params = {
+      'vaultId': this.config.vaultName
+    };
+
+    if(sinceCommitId !== undefined) {
+      params['sinceCommitId'] = sinceCommitId;
+    }
+
+    const response = await this._get('/pull', params);
+    return response.snapshots;
   }
 
   commit(changes) {
-    const url = `${this.config.url}/commit?device=${this.config.device}&vaultId=${this.config.vaultName}`;
+    const params = {
+      'device': this.config.device,
+      'vaultId': this.config.vaultName
+    };
+
+    return this._post('/commit', params, JSON.stringify(changes));
+  }
+
+  _get(path, queryObject) {
+    return this._request('GET', path, {queryObject});
+  }
+
+  _post(path, queryObject, body) {
+    return this._request('POST', path, {queryObject, body});
+  }
+
+  async _request(method, path, {queryObject={}, body=null}) {
+
+    const queryString = Object.keys(queryObject)
+      .map(key => [key, queryObject[key]])
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
+
     const auth = 'Basic ' + btoa(`${this.config.username}:${this.config.password}`);
-    return fetch(url, {
-      method: 'POST',
+    const url = `${this.config.url}${path}?${queryString}`;
+
+    const response = await fetch(url, {
+      method: method,
       headers: {
         'Authorization': auth
       },
-      body: JSON.stringify(changes)
-    }).then(resp => resp.json());
+      body: body
+    });
+
+    const statusCode = response.status;
+    const responseBody = await response.json();
+
+    if(statusCode === 400) {
+      throw new Error(`Code: ${statusCode}\nMessage: ${responseBody.status}`);
+    }
+
+    return responseBody;
   }
 }

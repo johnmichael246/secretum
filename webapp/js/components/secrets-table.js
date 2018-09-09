@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import clipboard from "clipboard-polyfill";
+
 module.exports = SecretsTable;
 
 /* global React */
@@ -55,7 +57,6 @@ export type SecretsTableProps = {
 
 function SecretsTable({
   onEdit,
-  onCopy,
   onRemove,
   secrets=[],
   columns,
@@ -67,6 +68,10 @@ function SecretsTable({
     const instrumented = Object.create(secret);
     instrumented.actions =  ep(SecretToolbox, {secret, onCopy, onEdit, onRemove});
     return instrumented;
+  };
+
+  const onCopy = secret => {
+    clipboard.writeText(secret.password);
   };
 
   const detailsFactory = (secret) => {

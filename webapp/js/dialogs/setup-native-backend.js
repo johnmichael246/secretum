@@ -23,11 +23,11 @@ import type NativeConfigFormProps from '../components/configs/native-config-form
 import PropTypes from 'prop-types';
 
 const newNativeConfigTemplate = {
-  url: 'https://',
-  vaultName: '',
-  username: '',
-  password: '',
-  device: ''
+  url: '/service',
+  vaultName: '1',
+  username: 'root',
+  password: 'root',
+  device: 'device'
 };
 
 export default class SetupNativeBackend extends React.Component {

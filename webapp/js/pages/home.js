@@ -26,6 +26,8 @@ import type { SecretsTableProps } from '../components/secrets-table.js';
 import type { Secret, SecretFormProps } from '../components/secret-form.js';
 import PropTypes from 'prop-types';
 
+import clipboard from "clipboard-polyfill";
+
 const actions = require('../actions.js');
 
 type SecretsQuery = {
@@ -45,10 +47,6 @@ class HomePage extends React.Component {
     this.context.store.findSecrets(query).then(secrets => {
       this.context.redux.dispatch({type: actions.HOME_PAGE.INJECT, secrets});
     });
-  }
-
-  _onCopy = (secret: Secret) => {
-    copyTextToClipboard(secret.password);
   }
 
   _onEdit = (secret: Secret) => {
@@ -145,7 +143,6 @@ class HomePage extends React.Component {
       detailed: this.state.detailed,
       onRowClick: this._onSecretClick,
       onEdit: this._onEdit,
-      onCopy: this._onCopy,
       onRemove: this._onRemove
     };
 
@@ -256,7 +253,8 @@ function reduce(state = {query: {}, loading: true}, action) {
 module.exports.reducer = reduce;
 
 function copyTextToClipboard(text) {
-  var textArea = document.createElement("textarea");
+  clipboard.writeText(text);
+  /*var textArea = document.createElement("textarea");
 
   // Place in top-left corner of screen regardless of scroll position.
   textArea.style.fontSize = '12pt';
@@ -297,5 +295,5 @@ function copyTextToClipboard(text) {
     }
   } finally {
     body.removeChild(textArea);
-  }
+  }*/
 }

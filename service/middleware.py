@@ -14,7 +14,7 @@
 
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login
 from base64 import b64decode
 import logging
@@ -43,10 +43,8 @@ class RequireBasicAuthentication():
                 self.logger.info('User authenticated')
                 login(request, user)
                 return None
-            else:
-                self.logger.warning('User authentication failed')
 
-        resp = HttpResponse(status=401)
-        resp['WWW-Authenticate'] = 'Basic realm="Secretum"'
-        return resp
-        
+            self.logger.warning('User authentication failed')
+            return JsonResponse({'status': 'invalid-credentials'}, status=400)
+
+        return JsonResponse({'status': 'missing-auth-header'}, status=400)

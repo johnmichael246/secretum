@@ -81,7 +81,11 @@ function SecretForm({
   ].filter(field => !fields || fields.includes(field.name));
 
   if(!('id' in Object.keys(secret))) {
+    // Can not display ID of new objects
     formFields.splice(0,1);
+
+    // Generating a password for new secrets
+    generatePassword(secret);
   }
 
   if(generator) {

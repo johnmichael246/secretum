@@ -89,10 +89,19 @@ export default class SyncPage extends React.Component {
   }
 
   async onSync() {
-    await this.syncManager.sync();
-    const status = await this.syncManager.getSyncStatus();
-    const changes = await this.syncManager.getUnsyncedChanges();
-    this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
+    try {
+      await this.syncManager.sync();
+      const status = await this.syncManager.getSyncStatus();
+      const changes = await this.syncManager.getUnsyncedChanges();
+
+      this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
+    } catch(ex) {
+      // We want to communicate that the action failed
+      alert(ex.message);
+
+      // Let's have the exception handler also be aware
+      throw ex;
+    }
   }
 
   async onClear() {
