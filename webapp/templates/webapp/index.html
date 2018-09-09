@@ -20,13 +20,16 @@
 <html>
 <head>
     <title>Secretum</title>
-
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
 
     <link rel="manifest" href="{% url 'manifest' %}">
     <link rel="apple-touch-icon" sizes="120x120" href="{% static 'webapp/icon-120x120.png' %}"/>
+
+    <meta name="apple-touch-fullscreen" content="YES">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Secretum">
 
     <link rel="stylesheet" href="{% static 'webapp/css/app.css' %}">
     <link rel="stylesheet" href="{% static 'webapp/css/style.css' %}">
