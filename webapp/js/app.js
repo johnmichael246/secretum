@@ -18,7 +18,6 @@ import ZingTouch from 'zingtouch';
 
 import Raven from 'raven-js';
 
-
 Raven.config('https://d78c25b39d524b5b8c5301434c0f254c@sentry.io/1277211').install()
 
 const Redux = require('redux');
@@ -44,7 +43,7 @@ if (!Object.entries) {
   require('object.entries').shim();
 }
 
-window.Promise = require('bluebird');
+//window.Promise = require('bluebird');
 
 const initialState = {
   booted: false
@@ -98,7 +97,12 @@ function rootReducer(state = initialState, action) {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.redux = Redux.createStore(rootReducer.bind(this));
+    this.redux = Redux.createStore(
+      rootReducer.bind(this),
+      typeof window !== 'undefined'
+        && window.__REDUX_DEVTOOLS_EXTENSION__
+        && window.__REDUX_DEVTOOLS_EXTENSION__()
+    );
 
     const extract = state => ({booted: state.booted, page: state.page, modal: state.modal});
 

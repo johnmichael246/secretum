@@ -30,10 +30,6 @@ import clipboard from "clipboard-polyfill";
 
 const actions = require('../actions.js');
 
-type SecretsQuery = {
-  keyword?: string,
-  groupId?: number
-};
 
 class HomePage extends React.Component {
   constructor(props: any, context: any) {
@@ -180,13 +176,23 @@ module.exports.contextTypes = {
   redux: PropTypes.object
 };
 
+var queryId = 0;
 function query(state, action) {
-  return Object.assign({}, state, {loading: true, query: action.query});
+  const queryObj = Object.assign({}, action.query, {id: queryId});
+  queryId++;
+
+  return Object.assign({}, state, {loading: true, query: queryObj});
 }
+
+type SecretsQuery = {
+  keyword?: string,
+  groupId?: number
+};
 
 type HomeInjectAction = {
   type: actions.HOME_PAGE.INJECT,
-  secrets: Array<Secret>
+  secrets: Array<Secret>,
+  queryId: number
 };
 
 type LoadingState = {
@@ -204,6 +210,12 @@ type LoadedState = {
 };
 
 function inject(state: LoadingState, action: HomeInjectAction): LoadedState {
+  // Preventing race conditions with
+  // monotonically increasing ID
+  if(state.query.id > action.query.id) {
+    return;
+  }
+
   const newDetailed = new Array(action.secrets.length).fill(false);
 
   if (state.detailed && state.secrets) {
@@ -252,48 +264,4 @@ function reduce(state = {query: {}, loading: true}, action) {
 
 module.exports.reducer = reduce;
 
-function copyTextToClipboard(text) {
-  clipboard.writeText(text);
-  /*var textArea = document.createElement("textarea");
 
-  // Place in top-left corner of screen regardless of scroll position.
-  textArea.style.fontSize = '12pt';
-  textArea.style.position = 'absolute';
-  textArea.style.top = '0';
-  textArea.style.left = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
-
-  // Ensure it has a small width and height. Setting to 1px / 1em
-  // doesn't work as this gives a negative w/h on some browsers.
-  textArea.style.width = '2em';
-  textArea.style.height = '2em';
-
-  // Clean up any borders.
-  textArea.style.border = '0';
-  textArea.style.padding = '0';
-  textArea.style.margin = '0';
-
-  textArea.style.outline = 'none';
-  textArea.style.boxShadow = 'none';
-
-  // Avoid flash of white box if rendered for any reason.
-  textArea.style.background = 'transparent';
-
-  textArea.setAttribute('readonly', '');
-  textArea.value = text;
-
-  const body = document.body;
-  if(!body) {
-      throw new Error('The DOM is not loaded yet!');
-  }
-
-  body.appendChild(textArea);
-  textArea.select();
-
-  try {
-    if (document.execCommand('copy') === 'unsuccessful') {
-      throw new Error("Unable to copy to clipboard!");
-    }
-  } finally {
-    body.removeChild(textArea);
-  }*/
-}
