@@ -133,11 +133,22 @@ class App extends React.Component {
     const pages = ['home', 'groups', 'sync'];
     var shift = 0;
 
-    activeRegion.bind(element, 'swipe', function (event) {
+    activeRegion.bind(element, 'swipe', event => {
+      if(this.state.modal) {
+        // Ignoring swipes in modals
+        return;
+      }
+
       const data = event.detail.data[0];
       const angle = data.currentDirection;
-      const swipeRight = angle > 270 || angle < 90;
+      const swipeRight = angle > 360-45 || angle < 45;
+      const swipeLeft = angle > 180-45 && angle < 180+45;
       const distance = data.distance;
+
+      if(!swipeRight && !swipeLeft) {
+        // No meaningful swipe occurred
+        return;
+      }
 
       console.log('Swipe Event', angle, swipeRight ? ' Right' : 'Left', distance, data);
 

@@ -22,8 +22,8 @@ const SecretEditorDialog = require('../dialogs/secret-editor.js');
 const SecretForm = require('../components/secret-form.js');
 const Button = require('../components/button.js');
 
-import type { SecretsTableProps } from '../components/secrets-table.js';
-import type { Secret, SecretFormProps } from '../components/secret-form.js';
+import type {SecretsTableProps} from '../components/secrets-table.js';
+import type {Secret, SecretFormProps} from '../components/secret-form.js';
 import PropTypes from 'prop-types';
 
 import clipboard from "clipboard-polyfill";
@@ -35,13 +35,20 @@ class HomePage extends React.Component {
   constructor(props: any, context: any) {
     super(props);
     this.context = context;
-    this.state = {loading: true, query: {}};
+    this.state = this.context.redux.getState().home;
+  }
+
+  _nextQueryId = () => {
+    return this.context.redux.getState().home.query.id + 1;
   }
 
   _onSearch = (query: SecretsQuery) => {
+    query.id = this._nextQueryId();
+
     this.context.redux.dispatch({type: actions.HOME_PAGE.QUERY, query});
+
     this.context.store.findSecrets(query).then(secrets => {
-      this.context.redux.dispatch({type: actions.HOME_PAGE.INJECT, secrets});
+      this.context.redux.dispatch({type: actions.HOME_PAGE.INJECT, secrets, query});
     });
   }
 
@@ -105,15 +112,16 @@ class HomePage extends React.Component {
       }
     });
 
-    this._onSearch({});
+    // Reloading the current state
+    this._onSearch(this.state.query);
 
-    if(!document.body) throw 'React invariant violated!';
+    if (!document.body) throw 'React invariant violated!';
 
     document.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.altKey && event.key === 'q') {
         const select = document.querySelector('.search select');
 
-        if(!select) {
+        if (!select) {
           throw new Error('Unable to find the search input in the DOM!');
         }
 
@@ -121,7 +129,7 @@ class HomePage extends React.Component {
       } else if (event.altKey && event.key === 'w') {
         const input = document.querySelector('.search input');
 
-        if(!input || !(input instanceof HTMLInputElement)) {
+        if (!input || !(input instanceof HTMLInputElement)) {
           throw new Error('Unable to find the search input in the DOM!');
         }
 
@@ -162,7 +170,7 @@ class HomePage extends React.Component {
   }
 
   componentWillUnmount() {
-    if(this._unsubscribe) {
+    if (this._unsubscribe) {
       this._unsubscribe();
     }
   }
@@ -176,15 +184,14 @@ module.exports.contextTypes = {
   redux: PropTypes.object
 };
 
-var queryId = 0;
 function query(state, action) {
-  const queryObj = Object.assign({}, action.query, {id: queryId});
-  queryId++;
+  const query = action.query;
 
-  return Object.assign({}, state, {loading: true, query: queryObj});
+  return Object.assign({}, state, {loading: true, query});
 }
 
 type SecretsQuery = {
+  id?: number,
   keyword?: string,
   groupId?: number
 };
@@ -192,7 +199,7 @@ type SecretsQuery = {
 type HomeInjectAction = {
   type: actions.HOME_PAGE.INJECT,
   secrets: Array<Secret>,
-  queryId: number
+  query: SecretsQuery
 };
 
 type LoadingState = {
@@ -213,7 +220,7 @@ function inject(state: LoadingState, action: HomeInjectAction): LoadedState {
   // Preventing race conditions with
   // monotonically increasing ID
   if(state.query.id > action.query.id) {
-    return;
+    return state;
   }
 
   const newDetailed = new Array(action.secrets.length).fill(false);
@@ -222,7 +229,7 @@ function inject(state: LoadingState, action: HomeInjectAction): LoadedState {
     const oldDetailed = state.detailed;
     const oldSecrets = state.secrets;
 
-    for(let [index, secret] of action.secrets.entries()) {
+    for (let [index, secret] of action.secrets.entries()) {
       const oldIndex = oldSecrets.findIndex(s => s.id === secret.id);
       if (oldIndex !== -1) {
         newDetailed[index] = oldDetailed[oldIndex];
@@ -243,16 +250,13 @@ function detail(state: LoadedState, action) {
   return Object.assign({}, state, {detailed: newDetailed});
 }
 
-function reduce(state = {query: {}, loading: true}, action) {
+function reduce(state = {query: {id: 0}, loading: true}, action) {
   if (action.type === actions.HOME_PAGE.QUERY) {
     return query(state, action);
   } else if (action.type === actions.HOME_PAGE.INJECT) {
-    if(!state.loading) {
-      throw new Error('Can not inject into, because not loading!');
-    }
     return inject(state, action);
   } else if (action.type === actions.HOME_PAGE.DETAIL) {
-    if(state.loading) {
+    if (state.loading) {
       throw new Error('Can not detail a record, while loading!');
     }
 
