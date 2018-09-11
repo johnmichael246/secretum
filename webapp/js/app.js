@@ -64,8 +64,6 @@ function navigate(page) {
 }
 
 function rootReducer(state = initialState, action) {
-  console.log(action);
-
   let newState = {...state};
 
   if (action.type === actions.NAVIGATE) {
