@@ -80,10 +80,12 @@ function SecretForm({
     {name: "note", type: "longtext", label: "Note", rows: 5, editable}
   ].filter(field => !fields || fields.includes(field.name));
 
-  if(!('id' in Object.keys(secret))) {
+  if(secret.id === undefined) {
     // Can not display ID of new objects
     formFields.splice(0,1);
+  }
 
+  if(secret.id === undefined && secret.password === '') {
     // Generating a password for new secrets
     generatePassword(secret);
   }
