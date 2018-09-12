@@ -33,8 +33,8 @@ class RequireBasicAuthentication():
         #if view_func.__module__ is not service.views.__name__:
         #    return None
 
-        if 'HTTP_X_FORWARED_TO' in request.META:
-            ip = request.META['HTTP_X_FORWARDED_TO']
+        if 'HTTP_X_FORWARDED_FOR' in request.META:
+            ip = request.META['HTTP_X_FORWARDED_FOR']
         else:
             ip = request.META['REMOTE_ADDR']
 
