@@ -30,13 +30,14 @@ class RequireBasicAuthentication():
         return self.get_response(request)
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        #if view_func.__module__ is not service.views.__name__:
-        #    return None
-
         if 'HTTP_X_FORWARDED_FOR' in request.META:
             ip = request.META['HTTP_X_FORWARDED_FOR']
         else:
             ip = request.META['REMOTE_ADDR']
+
+        required = True
+        if view_func == service.views.hello:
+            required = False
 
         attempt = None
         if 'HTTP_AUTHORIZATION' in request.META:
@@ -58,7 +59,7 @@ class RequireBasicAuthentication():
             request.body if len(request.body) > 0 else None
         ))
 
-        if not request.user.is_authenticated:
+        if required and not request.user.is_authenticated:
             if attempt is not None:
                 resp = JsonResponse({'status': 'invalid-credentials'}, status=401)
                 resp['WWW-Authenticate'] = 'Basic realm="SECRETUM"'

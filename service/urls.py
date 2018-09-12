@@ -19,5 +19,6 @@ urlpatterns = [
     url(r'^$', views.hello, name="service-root"),
     url(r'^meta$', views.meta),
     url(r'^pull$', views.pull),
-    url(r'^commit$', views.commit)
+    url(r'^commit$', views.commit),
+    url(r'^hello$', views.hello)
 ]
