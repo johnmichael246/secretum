@@ -30,8 +30,13 @@ class RequireBasicAuthentication():
         return self.get_response(request)
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        if view_func.__module__ is not service.views.__name__:
-            return None
+        #if view_func.__module__ is not service.views.__name__:
+        #    return None
+
+        if 'HTTP_X_FORWARED_TO' in request.META:
+            ip = request.META['HTTP_X_FORWARDED_TO']
+        else:
+            ip = request.META['REMOTE_ADDR']
 
         attempt = None
         if 'HTTP_AUTHORIZATION' in request.META:
@@ -43,10 +48,10 @@ class RequireBasicAuthentication():
                 login(request, user)
                 self.logger.info('User {} authenticated with HTTP auth'.format(username))
             else:
-                self.logger.warning('User {} authentication with HTTP failed'.format(username))
+                self.logger.warning('User {} / {} authentication with HTTP failed'.format(ip, username))
 
         self.logger.info('User {} called {}.{} with {} and {}'.format(
-            request.user.email if request.user.is_authenticated else None,
+            request.user if request.user.is_authenticated else ip,
             view_func.__module__,
             view_func.__name__,
             request.GET,
@@ -55,8 +60,12 @@ class RequireBasicAuthentication():
 
         if not request.user.is_authenticated:
             if attempt is not None:
-                return JsonResponse({'status': 'invalid-credentials'}, status=400)
+                resp = JsonResponse({'status': 'invalid-credentials'}, status=401)
+                resp['WWW-Authenticate'] = 'Basic realm="SECRETUM"'
+                return resp
             else:
-                return JsonResponse({'status': 'missing-auth-header'}, status=400)
+                resp = JsonResponse({'status': 'missing-auth-header'}, status=401)
+                resp['WWW-Authenticate'] = 'Basic realm="SECRETUM"'
+                return resp
 
         return None
