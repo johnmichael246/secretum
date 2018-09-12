@@ -20,6 +20,7 @@ from base64 import b64decode
 import logging
 import service.views
 
+
 class RequireBasicAuthentication():
     def __init__(self, get_response):
         self.get_response = get_response
@@ -32,19 +33,30 @@ class RequireBasicAuthentication():
         if view_func.__module__ is not service.views.__name__:
             return None
 
-        if request.user.is_authenticated:
-            return None
-
+        attempt = None
         if 'HTTP_AUTHORIZATION' in request.META:
             attempt = request.META['HTTP_AUTHORIZATION']
             username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
             user = authenticate(username=username, password=password)
+
             if user is not None:
-                self.logger.info('User authenticated')
                 login(request, user)
-                return None
+                self.logger.info('User {} authenticated with HTTP auth'.format(username))
+            else:
+                self.logger.warning('User {} authentication with HTTP failed'.format(username))
 
-            self.logger.warning('User authentication failed')
-            return JsonResponse({'status': 'invalid-credentials'}, status=400)
+        self.logger.info('User {} called {}.{} with {} and {}'.format(
+            request.user.email if request.user.is_authenticated else None,
+            view_func.__module__,
+            view_func.__name__,
+            request.GET,
+            request.body if len(request.body) > 0 else None
+        ))
 
-        return JsonResponse({'status': 'missing-auth-header'}, status=400)
+        if not request.user.is_authenticated:
+            if attempt is not None:
+                return JsonResponse({'status': 'invalid-credentials'}, status=400)
+            else:
+                return JsonResponse({'status': 'missing-auth-header'}, status=400)
+
+        return None
