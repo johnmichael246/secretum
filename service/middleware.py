@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf import settings
-from django.core.exceptions import MiddlewareNotUsed
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth import authenticate, login
-from base64 import b64decode
 import logging
+from base64 import b64decode
+
+import webapp.views
+from django.conf import settings
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.shortcuts import redirect
+
 import service.views
+from devsite import settings
 
 
 class RequireBasicAuthentication():
@@ -36,23 +40,25 @@ class RequireBasicAuthentication():
             ip = request.META['REMOTE_ADDR']
 
         required = True
-        if view_func == service.views.hello:
+        if view_func in (webapp.views.login, service.views.hello):
             required = False
 
-        attempt = None
-        if 'HTTP_AUTHORIZATION' in request.META:
-            attempt = request.META['HTTP_AUTHORIZATION']
-            username, password = b64decode(attempt.split(' ')[1]).decode().split(':')
+        http_allowed = settings.HTTP_AUTH_ALLOWED
+        http_attempt = 'HTTP_AUTHORIZATION' in request.META
+        if http_allowed and http_attempt:
+            http_token = request.META['HTTP_AUTHORIZATION']
+            username, password = b64decode(http_token.split(' ')[1]).decode().split(':')
             user = authenticate(username=username, password=password)
 
             if user is not None:
                 login(request, user)
-                self.logger.info('User {} authenticated with HTTP auth'.format(username))
+                self.logger.info('User {} / {} authentication with HTTP ok'.format(ip, username))
             else:
                 self.logger.warning('User {} / {} authentication with HTTP failed'.format(ip, username))
 
-        self.logger.info('User {} called {}.{} with {} and {}'.format(
-            request.user if request.user.is_authenticated else ip,
+        self.logger.info('User {} / {} called {}.{} with {} and {}'.format(
+            ip,
+            request.user,
             view_func.__module__,
             view_func.__name__,
             request.GET,
@@ -60,13 +66,11 @@ class RequireBasicAuthentication():
         ))
 
         if required and not request.user.is_authenticated:
-            if attempt is not None:
+            if http_attempt:
                 resp = JsonResponse({'status': 'invalid-credentials'}, status=401)
                 resp['WWW-Authenticate'] = 'Basic realm="SECRETUM"'
                 return resp
             else:
-                resp = JsonResponse({'status': 'missing-auth-header'}, status=401)
-                resp['WWW-Authenticate'] = 'Basic realm="SECRETUM"'
-                return resp
+                return redirect('login')
 
         return None

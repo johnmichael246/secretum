@@ -33,6 +33,8 @@ APPEND_SLASH = True
 # Secretum-specific settings
 IDB_NAME = 'secretum_master'
 VERSION = get_contents(os.path.join(BASE_DIR, 'log', 'version'))
+GOOGLE_SIGNIN_CLIENT_ID = os.getenv('GOOGLE_SIGNIN_CLIENT_ID')
+HTTP_AUTH_ALLOWED = os.getenv('HTTP_AUTH_ALLOWED') == 'true'
 
 # Database backend used by the service
 # Defaults match the docker image of postgres
@@ -46,6 +48,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', '')
     }
 }
+
 
 # Application definition
 INSTALLED_APPS = [

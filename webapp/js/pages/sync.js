@@ -16,6 +16,7 @@
 /* global React */
 const Button = require('../components/button.js');
 import DataTable from '../components/data-table.js';
+
 const ConfirmDialog = require('../dialogs/confirm.js');
 
 import NativeConfigForm from '../components/configs/native-config-form.js';
@@ -48,7 +49,7 @@ export default class SyncPage extends React.Component {
   async componentWillMount() {
     this.unsubscribe = this.redux.subscribe(_ => {
       const state = this.redux.getState();
-      if(state.page === 'sync') {
+      if (state.page === 'sync') {
         this.setState(state.sync);
       }
     });
@@ -59,33 +60,39 @@ export default class SyncPage extends React.Component {
   }
 
   componentWillUnmount() {
-    if(this.unsubscribe) {
+    if (this.unsubscribe) {
       this.unsubscribe();
     }
   }
 
-  onSetup = () => {
-    const props: Object = {
-      onSubmit: (config) => {
-        const backend = {type: 'native', config};
-        this.syncManager.setup(backend);
-        this.redux.dispatch({
-          type: actions.SYNC_PAGE.INJECT,
-          status: Object.assign(this.state.status, {backend}),
-          changes: this.state.changes
-        });
-        this.redux.dispatch({type: actions.HIDE_MODAL});
-      },
-      onCancel: () => {
-        this.redux.dispatch({type: actions.HIDE_MODAL});
-      }
-    };
+  async onLogout() {
 
-    if(this.state.status.backend) {
-      props.config = this.state.status.backend.config;
-    }
+  }
 
-    this.redux.dispatch({type: actions.SHOW_MODAL, component: SetupNativeBackend, props});
+  onLogOut = async () => {
+    window.signOut();
+
+    // const props: Object = {
+    //   onSubmit: (config) => {
+    //     const backend = {type: 'native', config};
+    //     this.syncManager.setup(backend);
+    //     this.redux.dispatch({
+    //       type: actions.SYNC_PAGE.INJECT,
+    //       status: Object.assign(this.state.status, {backend}),
+    //       changes: this.state.changes
+    //     });
+    //     this.redux.dispatch({type: actions.HIDE_MODAL});
+    //   },
+    //   onCancel: () => {
+    //     this.redux.dispatch({type: actions.HIDE_MODAL});
+    //   }
+    // };
+    //
+    // if (this.state.status.backend) {
+    //   props.config = this.state.status.backend.config;
+    // }
+    //
+    // this.redux.dispatch({type: actions.SHOW_MODAL, component: SetupNativeBackend, props});
   }
 
   async onSync() {
@@ -95,7 +102,7 @@ export default class SyncPage extends React.Component {
       const changes = await this.syncManager.getUnsyncedChanges();
 
       this.redux.dispatch({type: actions.SYNC_PAGE.INJECT, status, changes});
-    } catch(ex) {
+    } catch (ex) {
       // We want to communicate that the action failed
       alert(ex.message);
 
@@ -112,15 +119,18 @@ export default class SyncPage extends React.Component {
   }
 
   render() {
-    if(this.state.loading) {
+    if (this.state.loading) {
       return <div className="page page--sync">Loading...</div>;
     }
+
     function procCommit(commit) {
-      return {...commit,
+      return {
+        ...commit,
         date: formatDate(new Date(commit.posted)),
         time: formatTime(new Date(commit.posted))
       };
     }
+
     const commits = Array.from(this.state.status.commits.values())
       .reverse()
       .slice(0, 10)
@@ -128,9 +138,10 @@ export default class SyncPage extends React.Component {
 
     return (
       <div className="page page--sync">
-        <h2>Backend:</h2>
-        <Button handler={this.onSetup} label='Change' icon='edit'/>
-        { this.state.status.backend && <NativeConfigForm editable={false} nativeConfig={this.state.status.backend.config}/> }
+        {/*<h2>Backend:</h2>*/}
+        <Button handler={this.onLogOut} label='Log Out' icon='edit'/>
+        {/*{this.state.status.backend &&*/}
+        {/*<NativeConfigForm editable={false} nativeConfig={this.state.status.backend.config}/>}*/}
         <Button handler={this.onClear} label='Erase all' icon='warning'/>
         <DataTable
           loading={false}
@@ -148,15 +159,15 @@ export default class SyncPage extends React.Component {
           title="Recent Commits"
           columns={{date: 'Date', time: 'Time', device: 'Device', id: 'ID'}}
           data={commits}/>
-        { this.state.status.backend && <Button handler={this.onSync} label='Sync' icon='refresh'/> }
+        {this.state.status.backend && <Button handler={this.onSync} label='Sync' icon='refresh'/>}
       </div>
     );
 
   }
 }
 
-SyncPage.reducer = function(state={loading: true}, action) {
-  if(action.type === actions.SYNC_PAGE.INJECT) {
+SyncPage.reducer = function (state = {loading: true}, action) {
+  if (action.type === actions.SYNC_PAGE.INJECT) {
     return {...state, loading: false, status: action.status, changes: action.changes};
   } else {
     return state;
@@ -173,5 +184,5 @@ function formatDate(date) {
 }
 
 function formatTime(time) {
-	  return moment(time).format('HH:mm ZZ');
+  return moment(time).format('HH:mm ZZ');
 }

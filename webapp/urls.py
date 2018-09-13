@@ -18,5 +18,6 @@ import webapp.views as views
 urlpatterns = [
     url(r'^manifest.json$', views.manifest, name='manifest'),
     url(r'^sw.js', views.service_worker, name='service-worker'),
-    url(r'^$', views.home, name='home')
+    url(r'^$', views.home, name='home'),
+    url(r'^login$', views.login, name='login')
 ]

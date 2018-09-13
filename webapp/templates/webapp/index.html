@@ -20,7 +20,8 @@
 <html>
 <head>
     <title>Secretum</title>
-    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
+    <meta name="viewport"
+          content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover">
 
     <link rel="manifest" href="{% url 'manifest' %}">
     <link rel="apple-touch-icon" sizes="120x120" href="{% static 'webapp/icon-120x120.png' %}"/>
@@ -31,6 +32,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Secretum">
 
+    <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="{{ google_signin_client_id }}">
+    <script src="https://apis.google.com/js/platform.js?onload=onGoogleLoad" async defer></script>
+
     <link rel="stylesheet" href="{% static 'webapp/css/app.css' %}">
     <link rel="stylesheet" href="{% static 'webapp/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'webapp/css/font-awesome.min.css' %}">
@@ -40,16 +45,28 @@
     <script src="{% static 'webapp/js/bundle.js' %}"></script>
 
     <script>
-        var settings = {
-            idb_name: '{{ idb_name }}',
-            build_version: '{{ version }}',
-            service_url: "{% url 'service-root' %}"
-        };
+      var settings = {
+        idb_name: '{{ idb_name }}',
+        build_version: '{{ version }}',
+        service_url: "{% url 'service-root' %}"
+      };
+
+      async function signOut() {
+        try {
+          const auth2 = gapi.auth2.getAuthInstance();
+          await auth2.signOut();
+        } finally {
+          document.location.pathname = '/admin/logout';
+        }
+      }
     </script>
 </head>
 
 <body>
+
 <div id="root">Loading...</div>
+<div style="display: none" class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+
 </body>
 
 </html>
