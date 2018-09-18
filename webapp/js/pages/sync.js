@@ -71,28 +71,30 @@ export default class SyncPage extends React.Component {
 
   onLogOut = async () => {
     window.signOut();
+  }
 
-    // const props: Object = {
-    //   onSubmit: (config) => {
-    //     const backend = {type: 'native', config};
-    //     this.syncManager.setup(backend);
-    //     this.redux.dispatch({
-    //       type: actions.SYNC_PAGE.INJECT,
-    //       status: Object.assign(this.state.status, {backend}),
-    //       changes: this.state.changes
-    //     });
-    //     this.redux.dispatch({type: actions.HIDE_MODAL});
-    //   },
-    //   onCancel: () => {
-    //     this.redux.dispatch({type: actions.HIDE_MODAL});
-    //   }
-    // };
-    //
-    // if (this.state.status.backend) {
-    //   props.config = this.state.status.backend.config;
-    // }
-    //
-    // this.redux.dispatch({type: actions.SHOW_MODAL, component: SetupNativeBackend, props});
+ onSetup = () => {
+    const props: Object = {
+      onSubmit: (config) => {
+        const backend = {type: 'native', config};
+        this.syncManager.setup(backend);
+        this.redux.dispatch({
+          type: actions.SYNC_PAGE.INJECT,
+          status: Object.assign(this.state.status, {backend}),
+          changes: this.state.changes
+        });
+        this.redux.dispatch({type: actions.HIDE_MODAL});
+      },
+      onCancel: () => {
+        this.redux.dispatch({type: actions.HIDE_MODAL});
+      }
+    };
+
+    if (this.state.status.backend) {
+      props.config = this.state.status.backend.config;
+    }
+
+    this.redux.dispatch({type: actions.SHOW_MODAL, component: SetupNativeBackend, props});
   }
 
   async onSync() {
@@ -138,10 +140,14 @@ export default class SyncPage extends React.Component {
 
     return (
       <div className="page page--sync">
-        {/*<h2>Backend:</h2>*/}
+        <h2>Backend:</h2>
+        <Button handler={this.onSetup} label='Change' icon='edit'/>
         <Button handler={this.onLogOut} label='Log Out' icon='edit'/>
-        {/*{this.state.status.backend &&*/}
-        {/*<NativeConfigForm editable={false} nativeConfig={this.state.status.backend.config}/>}*/}
+        {
+          this.state.status.backend &&
+          <NativeConfigForm editable={false}
+                            nativeConfig={this.state.status.backend.config}/>
+        }
         <Button handler={this.onClear} label='Erase all' icon='warning'/>
         <DataTable
           loading={false}
